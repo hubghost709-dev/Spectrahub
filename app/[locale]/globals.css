@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+:root {
+  height: 100%;
+}
+
+.hidden-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hidden-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@layer base {
+  :root {
+    --background: 344 33% 9%;
+    --foreground: 210 40% 98%;
+
+    --card: 344 33% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 344 33% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 348 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 0 0% 19%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 0 0% 19%;
+    --muted-foreground: 215 16% 57%;
+
+    --accent: 0 0% 19%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 19%;
+    --input: 0 0% 19%;
+    --ring: 0 0% 19%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 344 33% 9%;
+    --foreground: 210 40% 98%;
+
+    --card: 344 33% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 344 33% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 348 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 0 0% 19%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 0 0% 19%;
+    --muted-foreground: 215 16% 57%;
+
+    --accent: 0 0% 19%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 19%;
+    --input: 0 0% 19%;
+    --ring: 0 0% 19%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom styles for SpectraHub */
+.nav-blur {
+  background: rgba(230, 0, 38, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-gradient {
+  background: linear-gradient(to bottom, rgba(51, 49, 49, 0.8), rgba(51, 49, 49, 0.95));
+}
+
+.stream-card {
+  background: rgba(51, 49, 49, 0.6);
+  transition: all 0.2s ease-in-out;
+}
+
+.stream-card:hover {
+  transform: translateY(-2px);
+  background: rgba(51, 49, 49, 0.8);
+}
