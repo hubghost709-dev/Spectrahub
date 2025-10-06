@@ -1,20 +1,42 @@
+import { authMiddleware } from '@clerk/nextjs';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// 1. Deshabilitar completamente Clerk y next-intl
-// El objetivo es que este archivo NO importe nada de las librerías problemáticas.
+const intlMiddleware = createMiddleware(routing);
 
-export function middleware(req: NextRequest) {
-    // Si esta línea no se ejecuta en AWS, la falla es en el entorno
-    console.log("Middleware Mínimo Ejecutado para:", req.nextUrl.pathname); 
+export default authMiddleware({
+  publicRoutes: [
+    "/",
+    "/api/webhooks(.*)",
+    "/api/uploadthing",
+    "/:username",
+    "/search",
+    "/:locale/sign-in",
+  ],
+  beforeAuth: (req: NextRequest) => {
+    // Excluir rutas API y recursos estáticos
+    const path = req.nextUrl.pathname;
+    
+    if (
+      path.startsWith('/api') || 
+      path.includes('.') || // Excluye archivos (imágenes, favicon, etc)
+      path.startsWith('/_next')
+    ) {
+      return NextResponse.next();
+    }
 
-    // Simplemente deja pasar la solicitud.
-    return NextResponse.next();
-}
+    // Aplicar middleware de traducción a rutas no-API
+    return intlMiddleware(req);
+  },
+  afterAuth: (auth, req) => {
+    // Lógica de autenticación posterior (si es necesaria)
+  }
+});
 
-// 2. Mantener el matcher amplio para asegurar que se ejecute en todas las rutas
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$).*)',
-    '/',
-  ],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico).*)', // Exclusión más limpia
+    '/'
+  ],
 };
