@@ -7,29 +7,37 @@ const intlMiddleware = createMiddleware(routing);
 
 export default authMiddleware({
   publicRoutes: [
-    "/", 
-    /^\/api\/webhooks/, // Expresión regular más segura
+    "/",
     "/api/uploadthing",
-    /^\/[^\/]+$/,        // Para "/:username"
     "/search",
     "/:locale/sign-in",
+    /^\/api\/webhooks/, // Regex más seguro
+    /^\/[^\/]+$/,       // Para "/:username"
   ],
-  beforeAuth: async (req: NextRequest) => { // Hacer async
+  beforeAuth: async (req: NextRequest) => {
     const path = req.nextUrl.pathname;
 
-    if (
-      path.startsWith('/api') ||
-      path.includes('.') || 
-      path.startsWith('/_next')
-    ) {
+    // Excluir rutas API y estáticos
+    if (path.startsWith('/api') || path.includes('.') || path.startsWith('/_next')) {
       return NextResponse.next();
     }
 
-    // Aplicar middleware de traducción y esperar resultado
-    return await intlMiddleware(req);
+    // Ejecutar next-intl middleware de manera segura
+    try {
+      const intlResponse = await intlMiddleware(req);
+      // Si intlMiddleware devuelve NextResponse, retornamos, si no, seguimos
+      if (intlResponse instanceof NextResponse) {
+        return intlResponse;
+      }
+    } catch (e) {
+      console.error("Error en intlMiddleware:", e);
+      // Si falla, continuamos para no bloquear la app
+    }
+
+    return undefined; // Continúa con authMiddleware normalmente
   },
   afterAuth: (auth, req) => {
-    // Lógica de autenticación posterior si es necesario
+    // Lógica de autenticación posterior si se requiere
   }
 });
 
