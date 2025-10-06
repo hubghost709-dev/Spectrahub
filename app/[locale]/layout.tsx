@@ -31,9 +31,9 @@ export default async function RootLayout({
         >
           <ClerkProvider>
             <NextIntlClientProvider locale={locale} messages={messages}>
-              <AuthWrapper locale={locale}>
+             
                 {children}
-              </AuthWrapper>
+            
               <Toaster />
             </NextIntlClientProvider>
           </ClerkProvider>
