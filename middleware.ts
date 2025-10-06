@@ -1,51 +1,20 @@
-// middleware.ts
-import { authMiddleware } from '@clerk/nextjs';
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const intlMiddleware = createMiddleware(routing);
+// 1. Deshabilitar completamente Clerk y next-intl
+// El objetivo es que este archivo NO importe nada de las librerías problemáticas.
 
-export default authMiddleware({
-    // Rutas públicas: Asegúrate de que las rutas de auth y la raíz sean públicas
-    publicRoutes: [
-        "/", 
-        /^\/api\/webhooks/, 
-        "/api/uploadthing",
-        "/search",
-        "/:locale/sign-in",
-        "/:locale/sign-up",
-        // Incluye cualquier otra ruta pública de la app
-    ],
+export function middleware(req: NextRequest) {
+    // Si esta línea no se ejecuta en AWS, la falla es en el entorno
+    console.log("Middleware Mínimo Ejecutado para:", req.nextUrl.pathname); 
 
-    // Ejecuta next-intl ANTES de que Clerk verifique la autenticación
-    beforeAuth: (req: NextRequest) => { 
-        const path = req.nextUrl.pathname;
-        
-        // Excluir estáticos y APIs que no necesitan middleware
-        if (
-            path.includes('.') || 
-            path.startsWith('/_next')
-        ) {
-            return NextResponse.next();
-        }
+    // Simplemente deja pasar la solicitud.
+    return NextResponse.next();
+}
 
-        // Ejecutar el middleware de internacionalización
-        const intlResponse = intlMiddleware(req);
-
-        // Devolver la respuesta de next-intl (ya sea la reescritura o la redirección 307)
-        return intlResponse;
-    },
-
-    // afterAuth opcional si necesitas manejar redirecciones a medida
-    afterAuth: (auth, req, evt) => {
-        // ...
-    }
-});
-
+// 2. Mantener el matcher amplio para asegurar que se ejecute en todas las rutas
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-    '/'
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$).*)',
+    '/',
   ],
 };
