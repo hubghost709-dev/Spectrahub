@@ -6,56 +6,50 @@ import { NextResponse, type NextRequest } from 'next/server';
 const intlMiddleware = createMiddleware(routing);
 
 function isPublicRoute(path: string) {
-  // Rutas públicas exactas
   const exactRoutes = [
     '/',
     '/search',
     '/api/uploadthing',
   ];
 
-  // Rutas dinámicas y regex
   const regexRoutes = [
-    /^\/api\/webhooks/,  // Para webhooks
-    /^\/[^\/]+$/,        // Para /:username
-    /^\/[a-z]{2}-[A-Z]{2}\/sign-in$/ // Para /:locale/sign-in (ej: /es-ES/sign-in)
+    /^\/api\/webhooks/,           // Rutas API específicas
+    /^\/[^\/]+$/,                 // /:username
+    /^\/[a-z]{2}-[A-Z]{2}\/sign-in$/ // /:locale/sign-in (ej: /es-ES/sign-in)
   ];
 
   if (exactRoutes.includes(path)) return true;
-
   return regexRoutes.some((regex) => regex.test(path));
 }
 
 export default authMiddleware({
-  publicRoutes: [], // Dejamos vacío para usar nuestro propio control
-  beforeAuth: async (req: NextRequest) => {
+  publicRoutes: [], // Usamos nuestro propio control
+  beforeAuth: (req: NextRequest) => {
     const path = req.nextUrl.pathname;
 
-    // Excluir archivos estáticos y rutas _next
+    // Excluir estáticos y _next
     if (path.includes('.') || path.startsWith('/_next')) {
       return NextResponse.next();
     }
 
-    // Si es ruta pública, continuar sin auth
+    // Rutas públicas
     if (isPublicRoute(path)) {
       return NextResponse.next();
     }
 
-    // Ejecutar next-intl de forma segura
-    try {
-      const intlResponse = await intlMiddleware(req);
-      if (intlResponse instanceof NextResponse) {
-        return intlResponse;
-      }
-    } catch (e) {
-      console.error("Error en intlMiddleware:", e);
+    // Aplicar next-intl mediante rewrite
+    const intlResponse = intlMiddleware(req);
+
+    // next-intl devuelve NextResponse o undefined, si es undefined, continuar con Clerk
+    if (intlResponse instanceof NextResponse) {
+      return intlResponse;
     }
 
-    // Continuar con authMiddleware
-    return undefined;
+    return undefined; // Continúa con authMiddleware
   },
   afterAuth: (auth, req) => {
-    // Aquí puedes agregar lógica post-auth si necesitas
-  }
+    // Lógica post-auth opcional
+  },
 });
 
 export const config = {
@@ -64,3 +58,4 @@ export const config = {
     '/'
   ],
 };
+
