@@ -5,39 +5,56 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const intlMiddleware = createMiddleware(routing);
 
+function isPublicRoute(path: string) {
+  // Rutas públicas exactas
+  const exactRoutes = [
+    '/',
+    '/search',
+    '/api/uploadthing',
+  ];
+
+  // Rutas dinámicas y regex
+  const regexRoutes = [
+    /^\/api\/webhooks/,  // Para webhooks
+    /^\/[^\/]+$/,        // Para /:username
+    /^\/[a-z]{2}-[A-Z]{2}\/sign-in$/ // Para /:locale/sign-in (ej: /es-ES/sign-in)
+  ];
+
+  if (exactRoutes.includes(path)) return true;
+
+  return regexRoutes.some((regex) => regex.test(path));
+}
+
 export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/api/uploadthing",
-    "/search",
-    "/:locale/sign-in",
-    /^\/api\/webhooks/, // Regex más seguro
-    /^\/[^\/]+$/,       // Para "/:username"
-  ],
+  publicRoutes: [], // Dejamos vacío para usar nuestro propio control
   beforeAuth: async (req: NextRequest) => {
     const path = req.nextUrl.pathname;
 
-    // Excluir rutas API y estáticos
-    if (path.startsWith('/api') || path.includes('.') || path.startsWith('/_next')) {
+    // Excluir archivos estáticos y rutas _next
+    if (path.includes('.') || path.startsWith('/_next')) {
       return NextResponse.next();
     }
 
-    // Ejecutar next-intl middleware de manera segura
+    // Si es ruta pública, continuar sin auth
+    if (isPublicRoute(path)) {
+      return NextResponse.next();
+    }
+
+    // Ejecutar next-intl de forma segura
     try {
       const intlResponse = await intlMiddleware(req);
-      // Si intlMiddleware devuelve NextResponse, retornamos, si no, seguimos
       if (intlResponse instanceof NextResponse) {
         return intlResponse;
       }
     } catch (e) {
       console.error("Error en intlMiddleware:", e);
-      // Si falla, continuamos para no bloquear la app
     }
 
-    return undefined; // Continúa con authMiddleware normalmente
+    // Continuar con authMiddleware
+    return undefined;
   },
   afterAuth: (auth, req) => {
-    // Lógica de autenticación posterior si se requiere
+    // Aquí puedes agregar lógica post-auth si necesitas
   }
 });
 
@@ -47,4 +64,3 @@ export const config = {
     '/'
   ],
 };
-
