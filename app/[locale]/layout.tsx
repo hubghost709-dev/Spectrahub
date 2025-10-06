@@ -30,14 +30,14 @@ export default async function RootLayout({
           storageKey="spectrahub-theme"
         >
           
-            <NextIntlClientProvider locale={locale} messages={messages}>
+           
              
               <AuthWrapper locale={locale}>
                 {children}
               </AuthWrapper>
             
               <Toaster />
-            </NextIntlClientProvider>
+          
           
         </ThemeProvider>
       </body>
