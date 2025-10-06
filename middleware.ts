@@ -14,29 +14,31 @@ export default authMiddleware({
     "/search",
     "/:locale/sign-in",
   ],
+
   beforeAuth: (req: NextRequest) => {
-    // Excluir rutas API y recursos estáticos
     const path = req.nextUrl.pathname;
-    
+
     if (
       path.startsWith('/api') || 
-      path.includes('.') || // Excluye archivos (imágenes, favicon, etc)
+      path.includes('.') || 
       path.startsWith('/_next')
     ) {
       return NextResponse.next();
     }
 
-    // Aplicar middleware de traducción a rutas no-API
-    return intlMiddleware(req);
+    // Siempre retornar un NextResponse
+    return intlMiddleware(req) ?? NextResponse.next();
   },
+
   afterAuth: (auth, req) => {
-    // Lógica de autenticación posterior (si es necesaria)
+    // Debe devolver siempre una respuesta válida
+    return NextResponse.next();
   }
 });
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)', // Exclusión más limpia
+    '/((?!_next/static|_next/image|favicon.ico).*)',
     '/'
   ],
 };
