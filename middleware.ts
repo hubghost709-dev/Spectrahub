@@ -1,24 +1,42 @@
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { authMiddleware } from '@clerk/nextjs';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+import { NextResponse, type NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+const intlMiddleware = createMiddleware(routing);
 
-  // Si ya incluye locale (ej: /es, /en), no hacemos nada
-  if (pathname.startsWith('/es') || pathname.startsWith('/en')) {
-    return NextResponse.next();
+export default authMiddleware({
+  publicRoutes: [
+    "/",
+    "/api/webhooks(.*)",
+    "/api/uploadthing",
+    "/:username",
+    "/search",
+    "/:locale/sign-in",
+  ],
+  beforeAuth: (req: NextRequest) => {
+    // Excluir rutas API y recursos estáticos
+    const path = req.nextUrl.pathname;
+    
+    if (
+      path.startsWith('/api') || 
+      path.includes('.') || // Excluye archivos (imágenes, favicon, etc)
+      path.startsWith('/_next')
+    ) {
+      return NextResponse.next();
+    }
+
+    // Aplicar middleware de traducción a rutas no-API
+    return intlMiddleware(req);
+  },
+  afterAuth: (auth, req) => {
+    // Lógica de autenticación posterior (si es necesaria)
   }
-
-  // Redirigir root "/" a /es (o el idioma que prefieras por defecto)
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL('/es', req.url));
-  }
-
-  return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: ['/((?!_next|favicon.ico).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico).*)', // Exclusión más limpia
+    '/'
+  ],
 };
-
