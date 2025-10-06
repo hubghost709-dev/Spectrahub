@@ -4,34 +4,41 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from 'sonner';
 import AuthWrapper from './components/AuthWrapper';
-import { NextIntlClientProvider } from 'next-intl'; // ✅ CORRECTO
-import { getMessages } from 'next-intl/server';     // ✅ CORRECTO
-
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import type { ReactNode } from 'react'; // ✅ IMPORTAMOS EL TIPO
 
 const inter = Inter({ subsets: ['latin'] });
 
-[{
-	"resource": "/c:/clon/app/[locale]/layout.tsx",
-	"owner": "typescript",
-	"code": "7031",
-	"severity": 8,
-	"message": "El elemento de enlace 'children' tiene un tipo 'any' implícito.",
-	"source": "ts",
-	"startLineNumber": 13,
-	"startColumn": 44,
-	"endLineNumber": 13,
-	"endColumn": 52,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/clon/app/[locale]/layout.tsx",
-	"owner": "typescript",
-	"code": "7031",
-	"severity": 8,
-	"message": "El elemento de enlace 'params' tiene un tipo 'any' implícito.",
-	"source": "ts",
-	"startLineNumber": 13,
-	"startColumn": 54,
-	"endLineNumber": 13,
-	"endColumn": 60,
-	"origin": "extHost1"
-}]
+export default async function RootLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;     // ✅ TIPOS AGREGADOS
+  params: { locale: string }; 
+}) {
+  const { locale } = params;
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          storageKey="spectrahub-theme"
+        >
+          <ClerkProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              <AuthWrapper locale={locale}>
+                {children}
+              </AuthWrapper>
+              <Toaster />
+            </NextIntlClientProvider>
+          </ClerkProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
