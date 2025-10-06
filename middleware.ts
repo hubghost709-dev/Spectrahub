@@ -14,10 +14,10 @@ export function middleware(req: NextRequest, event: NextFetchEvent) {
   return NextResponse.next();
 }
 
-// ⚠️ Importante: excluimos rutas de Clerk y estáticos
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$|sign-in|sign-up|sso-callback).*)",
+    // ⚠️ Excluir rutas estáticas + auth localizadas
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$|[a-z]{2}/sign-in|[a-z]{2}/sign-up|[a-z]{2}/sso-callback).*)",
   ],
 };
 
