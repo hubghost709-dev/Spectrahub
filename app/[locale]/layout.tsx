@@ -29,14 +29,16 @@ export default async function RootLayout({
           enableSystem={false}
           storageKey="spectrahub-theme"
         >
-          <ClerkProvider>
+          
             <NextIntlClientProvider locale={locale} messages={messages}>
              
+              <AuthWrapper locale={locale}>
                 {children}
+              </AuthWrapper>
             
               <Toaster />
             </NextIntlClientProvider>
-          </ClerkProvider>
+          
         </ThemeProvider>
       </body>
     </html>
