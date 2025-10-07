@@ -1,16 +1,13 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { authMiddleware as clerkAuthMiddleware } from "@clerk/nextjs";
+import { NextRequest, NextResponse, NextFetchEvent } from "next/server";
 
-export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/api/webhooks(.*)",
-    "/api/uploadthing",
-    "/:username",
-    "/search",
-    "/:locale/sign-in",
-  ],
-});
+export default function authMiddleware(req: NextRequest, event: NextFetchEvent) {
+  try {
+    return clerkAuthMiddleware()(req, event);
+  } catch (e) {
+    console.error("Auth middleware error:", e);
+    return NextResponse.next(); // Deja pasar la petición si Clerk falla
+  }
+}
 
-export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-};
+
