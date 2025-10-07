@@ -1,38 +1,36 @@
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
-import { withClerkMiddleware } from "@clerk/nextjs/server";
 import intlMiddleware from "./middleware/intl";
+import { auth } from "@clerk/nextjs/server";
 
-// 🧠 Middleware inteligente con soporte Amplify + SSR + Dev
-const handler = (req: NextRequest) => {
-  const url = req.nextUrl;
-  const hostname = url.hostname;
-  const isDev = process.env.NODE_ENV === "development";
-  const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+export async function middleware(req: NextRequest) {
+  try {
+    // 🟢 Ejecutar intl primero
+    const intlResponse = intlMiddleware(req);
+    if (intlResponse) return intlResponse;
 
-  // 🚫 Saltar middleware en entorno de build o prerender (ISR)
-  if (isBuild) {
+    // 🔵 Comprobar sesión con Clerk (modo Node, no Edge)
+    const { userId } = auth(req);
+
+    // Si no está autenticado y la ruta es privada, redirigir
+    const pathname = req.nextUrl.pathname;
+    const isProtected = !pathname.startsWith("/public") && !pathname.includes("/sign-in");
+    if (isProtected && !userId) {
+      const signInUrl = new URL("/sign-in", req.url);
+      return NextResponse.redirect(signInUrl);
+    }
+
     return NextResponse.next();
+  } catch (err) {
+    console.error("❌ Middleware error:", err);
+    return NextResponse.json({ error: "Middleware failed", details: String(err) }, { status: 500 });
   }
+}
 
-  // ⚙️ Saltar Clerk e intl en rutas de prefetch o en desarrollo local si hace falta
-  if (isDev && (url.pathname.startsWith("/_next") || url.pathname.startsWith("/api"))) {
-    return NextResponse.next();
-  }
-
-  // 🌍 Ejecutar next-intl primero (manejo de idioma y localización)
-  const intlResponse = intlMiddleware(req);
-  if (intlResponse) return intlResponse;
-
-  // ✅ Continuar flujo normal
-  return NextResponse.next();
-};
-
-// 🟢 Envuelto con Clerk para manejo de sesión seguro
-export default withClerkMiddleware(handler);
-
-// ⚙️ Matcher optimizado para AWS Amplify + App Router
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|woff2?|ttf|mp4|webm)$|[a-z]{2}/sign-in|[a-z]{2}/sign-up|[a-z]{2}/sso-callback|api/webhooks|api/public).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|woff2?|ttf|mp4|webm)$|sign-in|sign-up|sso-callback|api/webhooks|api/public).*)",
   ],
 };
+
