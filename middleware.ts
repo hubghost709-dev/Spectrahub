@@ -9,7 +9,7 @@ const clerk = authMiddleware({ debug: false });
 export default function middleware(req: NextRequest, event: NextFetchEvent) {
   const intlResponse = intlMiddleware(req);
   if (intlResponse) return intlResponse;
-  return clerk(req, event);
+  return clerk(req, event); // 👈 importante
 }
 
 export const config = {
