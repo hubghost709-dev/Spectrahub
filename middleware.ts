@@ -1,18 +1,21 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { NextRequest, NextResponse } from "next/server";
+import { withClerkMiddleware } from "@clerk/nextjs/server";
+import intlMiddleware from "./middleware/intl";
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
-export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/api/webhooks(.*)",
-    "/api/uploadthing",
-    "/:username",
-    "/search",
-  ],
+// 🟢 Middleware combinado y seguro para Amplify
+export default withClerkMiddleware((req: NextRequest) => {
+  // Primero ejecutamos next-intl
+  const intlResponse = intlMiddleware(req);
+  if (intlResponse) return intlResponse;
+
+  // Si todo bien, continuamos normalmente
+  return NextResponse.next();
 });
 
+// ⚙️ Configuración del matcher
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    // Excluimos recursos estáticos y rutas de autenticación
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json|apple-touch-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt)$|[a-z]{2}/sign-in|[a-z]{2}/sign-up|[a-z]{2}/sso-callback|api/webhooks).*)",
+  ],
 };
