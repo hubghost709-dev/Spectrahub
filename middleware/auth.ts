@@ -1,14 +1,13 @@
-import { authMiddleware as clerkAuthMiddleware } from "@clerk/nextjs";
-import { NextRequest, NextResponse, NextFetchEvent } from "next/server";
+import { authMiddleware } from "@clerk/nextjs";
 
-export default function authMiddleware(req: NextRequest, event: NextFetchEvent) {
-  try {
-    // clerkAuthMiddleware devuelve una función middleware
-    // la llamamos con req,event; si Clerk devuelve una respuesta, la retornamos.
-    return (clerkAuthMiddleware() as any)(req, event);
-  } catch (e) {
-    console.error("Auth middleware error:", e);
-    // si Clerk falla por cualquier razón, deja pasar la petición (no bloquear UI).
-    return NextResponse.next();
-  }
-}
+export default authMiddleware;
+
+// Opcional: rutas protegidas
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+    // Protege solo ciertas rutas si quieres:
+    // "/dashboard/:path*",
+    // "/profile/:path*",
+  ],
+};
