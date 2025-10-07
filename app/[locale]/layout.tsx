@@ -6,7 +6,7 @@ import { Toaster } from 'sonner';
 import AuthWrapper from './components/AuthWrapper';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import type { ReactNode } from 'react'; // ✅ IMPORTAMOS EL TIPO
+import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,11 +14,11 @@ export default async function RootLayout({
   children,
   params,
 }: {
-  children: ReactNode;     // ✅ TIPOS AGREGADOS
-  params: { locale: string }; 
+  children: ReactNode;
+  params: { locale: string };
 }) {
   const { locale } = params;
-  const messages = await getMessages();
+  const messages = await getMessages({ locale }); // ✅ FIX
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -30,7 +30,7 @@ export default async function RootLayout({
           storageKey="spectrahub-theme"
         >
           <ClerkProvider>
-            <NextIntlClientProvider locale={locale} messages={messages}>
+           <NextIntlClientProvider locale={locale} messages={messages}>
               <AuthWrapper locale={locale}>
                 {children}
               </AuthWrapper>
@@ -42,4 +42,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
