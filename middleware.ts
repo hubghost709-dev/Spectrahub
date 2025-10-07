@@ -1,15 +1,20 @@
+// 1. IMPORTA NextFetchEvent
 import { NextRequest, NextFetchEvent } from "next/server";
 import { authMiddleware } from "@clerk/nextjs";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
-const clerk = authMiddleware({ debug: false });
+const clerkMiddleware = authMiddleware({ debug: false });
 
+// 2. AÑADE el segundo argumento 'event' a la firma de la función
 export default function middleware(req: NextRequest, event: NextFetchEvent) {
   const intlResponse = intlMiddleware(req);
   if (intlResponse) return intlResponse;
-  return clerk(req, event); // 👈 importante
+
+  // 3. Pasa ambos argumentos al middleware de Clerk (aunque solo uses req)
+  // Clerk está diseñado para manejar ambos argumentos
+  return clerkMiddleware(req, event);
 }
 
 export const config = {
