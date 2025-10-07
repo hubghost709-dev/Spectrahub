@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { authMiddleware } from "@clerk/nextjs";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
@@ -8,13 +8,13 @@ const clerk = authMiddleware({
   debug: false,
 });
 
-export default function middleware(req: NextRequest) {
-  // 1️⃣ Localización (maneja idiomas)
+export default function middleware(req: NextRequest, event: any) {
+  // 1️⃣ Localización: SOLO recibe req
   const intlResponse = intlMiddleware(req);
   if (intlResponse) return intlResponse;
 
-  // 2️⃣ Autenticación (maneja Clerk)
-  return clerk(req);
+  // 2️⃣ Clerk: recibe req y event
+  return clerk(req, event);
 }
 
 export const config = {
