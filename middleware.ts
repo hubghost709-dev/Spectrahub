@@ -1,16 +1,18 @@
-import { withClerkMiddleware } from "@clerk/nextjs/server";
-import intlMiddleware from "./middleware/intl";
+import { authMiddleware } from "@clerk/nextjs";
 
-export const middleware = withClerkMiddleware((req) => {
-  // next-intl sigue funcionando como antes
-  const intlResponse = intlMiddleware(req);
-  if (intlResponse) return intlResponse;
-
-  return null; // Clerk se encarga del auth
+// This example protects all routes including api/trpc routes
+// Please edit this to allow other routes to be public as needed.
+// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
+export default authMiddleware({
+  publicRoutes: [
+    "/",
+    "/api/webhooks(.*)",
+    "/api/uploadthing",
+    "/:username",
+    "/search",
+  ],
 });
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$|[a-z]{2}/sign-in|[a-z]{2}/sign-up|[a-z]{2}/sso-callback).*)",
-  ],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
