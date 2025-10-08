@@ -32,7 +32,7 @@ beforeAuth: async (req: NextRequest) => {
     console.error('Error en intlMiddleware:', err);
     return NextResponse.next();
   }
-}
+},
   afterAuth: (auth, req) => {
     // Lógica de autenticación posterior (opcional)
   }
