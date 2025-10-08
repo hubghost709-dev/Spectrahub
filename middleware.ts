@@ -2,30 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@clerk/nextjs';
 import createMiddleware from 'next-intl/middleware';
 
+// Configuración de internacionalización
 const intlMiddleware = createMiddleware({
   locales: ['en', 'es'],
   defaultLocale: 'es'
 });
 
-// Exporta el middleware de Clerk correctamente envuelto
 export default authMiddleware({
-  beforeAuth: (req) => {
-    // Ejecuta next-intl ANTES de la autenticación
-    return intlMiddleware(req);
+  beforeAuth: (req: NextRequest) => {
+    // Ejecuta el middleware de internacionalización
+    const response = intlMiddleware(req);
+
+    // Si next-intl devuelve una respuesta, Clerk debe respetarla
+    if (response) return response;
+
+    // Si no hay respuesta, continúa el flujo normal
+    return NextResponse.next();
   },
   publicRoutes: [
-    '/', // Página principal pública
-    '/:locale', // Rutas de idioma
+    '/',
+    '/:locale',
     '/:locale/sign-in',
-    '/:locale/sign-up',
+    '/:locale/sign-up'
   ]
 });
 
+// Aplica el middleware a todas las rutas necesarias
 export const config = {
   matcher: [
-    // Asegúrate de incluir TODAS las rutas que necesitan Clerk
     '/((?!_next|.*\\..*|favicon.ico).*)',
     '/(en|es)/:path*'
   ]
 };
-
