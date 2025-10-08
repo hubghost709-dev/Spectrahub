@@ -7,36 +7,42 @@ const intlMiddleware = createMiddleware(routing);
 
 export default authMiddleware({
   publicRoutes: [
-    "/",
-    "/api/webhooks(.*)",
-    "/api/uploadthing",
-    "/:username",
-    "/search",
-    "/:locale/sign-in",
+    "/",                         // Home
+    "/api/webhooks(.*)",          // Webhooks
+    "/api/uploadthing",           // Upload
+    "/:username",                 // Perfil de usuario
+    "/search",                    // Búsqueda
+    "/:locale/sign-in",           // Sign-in con idioma
   ],
-  beforeAuth: (req: NextRequest) => {
-    // Excluir rutas API y recursos estáticos
+  beforeAuth: async (req: NextRequest) => {
     const path = req.nextUrl.pathname;
-    
+
+    // Excluir rutas de API, archivos estáticos y _next
     if (
-      path.startsWith('/api') || 
-      path.includes('.') || // Excluye archivos (imágenes, favicon, etc)
-      path.startsWith('/_next')
+      path.startsWith('/api') ||
+      path.startsWith('/_next') ||
+      path.includes('.') ||       // favicon, imágenes, JS, CSS
+      path === '/favicon.ico'
     ) {
       return NextResponse.next();
     }
 
-    // Aplicar middleware de traducción a rutas no-API
-    return intlMiddleware(req);
+    // Aplicar middleware de next-intl
+    try {
+      return await intlMiddleware(req);
+    } catch (err) {
+      console.error('Error en intlMiddleware:', err);
+      return NextResponse.next(); // Evita 500 y permite continuar
+    }
   },
   afterAuth: (auth, req) => {
-    // Lógica de autenticación posterior (si es necesaria)
+    // Lógica de autenticación posterior (opcional)
   }
 });
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)', // Exclusión más limpia
-    '/'
+    '/((?!_next/static|_next/image|favicon.ico|api).*)', // Excluye recursos estáticos y APIs
+    '/', // Home
   ],
 };
