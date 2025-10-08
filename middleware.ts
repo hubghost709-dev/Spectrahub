@@ -1,22 +1,42 @@
-import { NextRequest, NextFetchEvent } from "next/server";
-import { authMiddleware } from "@clerk/nextjs";
-import createIntlMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
+import { authMiddleware } from '@clerk/nextjs';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+import { NextResponse, type NextRequest } from 'next/server';
 
-const intlMiddleware = createIntlMiddleware(routing);
-const clerkMiddleware = authMiddleware({ debug: false });
+const intlMiddleware = createMiddleware(routing);
 
-export default function middleware(req: NextRequest, _event: NextFetchEvent) {
-  // 🌍 Internacionalización
-  const intlResponse = intlMiddleware(req); // ✅ Solo un argumento
-  if (intlResponse) return intlResponse;
+export default authMiddleware({
+  publicRoutes: [
+    "/",
+    "/api/webhooks(.*)",
+    "/api/uploadthing",
+    "/:username",
+    "/search",
+    "/:locale/sign-in",
+  ],
+  beforeAuth: (req: NextRequest) => {
+    // Excluir rutas API y recursos estáticos
+    const path = req.nextUrl.pathname;
+    
+    if (
+      path.startsWith('/api') || 
+      path.includes('.') || // Excluye archivos (imágenes, favicon, etc)
+      path.startsWith('/_next')
+    ) {
+      return NextResponse.next();
+    }
 
-  // 🔐 Clerk autenticación
-  return clerkMiddleware(req, _event);
-}
+    // Aplicar middleware de traducción a rutas no-API
+    return intlMiddleware(req);
+  },
+  afterAuth: (auth, req) => {
+    // Lógica de autenticación posterior (si es necesaria)
+  }
+});
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|pdf)$|[a-z]{2}/sign-in|[a-z]{2}/sign-up|[a-z]{2}/sso-callback).*)",
+    '/((?!_next/static|_next/image|favicon.ico).*)', // Exclusión más limpia
+    '/'
   ],
 };
