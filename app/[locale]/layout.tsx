@@ -23,21 +23,23 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
+     
+       <NextIntlClientProvider locale={locale} messages={messages}>
+  <ClerkProvider>
+     <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
           storageKey="spectrahub-theme"
         >
-          <ClerkProvider>
-           <NextIntlClientProvider locale={locale} messages={messages}>
-              <AuthWrapper locale={locale}>
-                {children}
-              </AuthWrapper>
-              <Toaster />
-            </NextIntlClientProvider>
-          </ClerkProvider>
-        </ThemeProvider>
+      <AuthWrapper locale={locale}>
+        {children}
+      </AuthWrapper>
+      <Toaster />
+    </ThemeProvider>
+  </ClerkProvider>
+</NextIntlClientProvider>
+        
       </body>
     </html>
   );
