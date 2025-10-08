@@ -6,35 +6,33 @@ import { NextResponse, type NextRequest } from 'next/server';
 const intlMiddleware = createMiddleware(routing);
 
 export default authMiddleware({
-  publicRoutes: [
-    "/",                         // Home
-    "/api/webhooks(.*)",          // Webhooks
-    "/api/uploadthing",           // Upload
-    "/:username",                 // Perfil de usuario
-    "/search",                    // Búsqueda
-    "/:locale/sign-in",           // Sign-in con idioma
-  ],
-  beforeAuth: async (req: NextRequest) => {
-    const path = req.nextUrl.pathname;
+ publicRoutes: [
+  "/",
+  "/api/webhooks(.*)",
+  "/api/uploadthing",
+  "/search",
+  "/:locale/sign-in",
+],
+beforeAuth: async (req: NextRequest) => {
+  const path = req.nextUrl.pathname;
 
-    // Excluir rutas de API, archivos estáticos y _next
-    if (
-      path.startsWith('/api') ||
-      path.startsWith('/_next') ||
-      path.includes('.') ||       // favicon, imágenes, JS, CSS
-      path === '/favicon.ico'
-    ) {
-      return NextResponse.next();
-    }
+  if (
+    path.startsWith('/api') ||
+    path.startsWith('/_next') ||
+    path.includes('.') ||
+    path === '/favicon.ico'
+  ) {
+    return NextResponse.next();
+  }
 
-    // Aplicar middleware de next-intl
-    try {
-      return await intlMiddleware(req);
-    } catch (err) {
-      console.error('Error en intlMiddleware:', err);
-      return NextResponse.next(); // Evita 500 y permite continuar
-    }
-  },
+  try {
+    const res = await intlMiddleware(req);
+    return res || NextResponse.next(); // forzar respuesta
+  } catch (err) {
+    console.error('Error en intlMiddleware:', err);
+    return NextResponse.next();
+  }
+}
   afterAuth: (auth, req) => {
     // Lógica de autenticación posterior (opcional)
   }
