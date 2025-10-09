@@ -21,6 +21,5 @@ export const config = {
     '/((?!_next|.*\\..*|favicon.ico).*)',
     '/(en|es)/:path*'
   ],
-  runtime: 'nodejs', // 👈 esta línea es clave
+  runtime: 'nodejs', // 👈 fuerza ejecución en Node.js runtime
 };
-
