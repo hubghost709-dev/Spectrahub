@@ -3,7 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm install
         # Verifica variables de entorno esenciales
         - echo "Clerk Key: $NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
         - echo "Database URL: $DATABASE_URL"
