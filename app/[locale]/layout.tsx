@@ -18,13 +18,19 @@ export default async function RootLayout({
   params: { locale: string };
 }) {
   const { locale } = params;
-  const messages = await getMessages({ locale });
+  let messages = {};
+
+  try {
+    messages = await getMessages({ locale });
+  } catch (error) {
+    console.error('❌ Error cargando mensajes:', error);
+  }
 
   return (
-    <ClerkProvider>
-      <html lang={locale} suppressHydrationWarning>
-        <body className={inter.className}>
-          <NextIntlClientProvider locale={locale} messages={messages}>
+    <html lang={locale} suppressHydrationWarning>
+      <body className={inter.className}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ClerkProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="dark"
@@ -34,9 +40,9 @@ export default async function RootLayout({
               <AuthWrapper locale={locale}>{children}</AuthWrapper>
               <Toaster />
             </ThemeProvider>
-          </NextIntlClientProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+          </ClerkProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }
