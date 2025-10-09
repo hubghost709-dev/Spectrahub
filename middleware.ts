@@ -9,9 +9,9 @@ const intlMiddleware = createMiddleware({
 
 export default authMiddleware({
   // **LÍNEA COMENTADA:** Con esto, Clerk se ejecutará sin la lógica de localización
-  // beforeAuth: (req) => {
-  //   return intlMiddleware(req);
-  // },
+   beforeAuth: (req) => {
+     return intlMiddleware(req);
+   },
   
   publicRoutes: [
     '/',
