@@ -30,5 +30,6 @@ export const config = {
   matcher: [
     '/((?!_next|.*\\..*|favicon.ico).*)',
     '/(en|es)/:path*'
-  ]
+  ],
+  runtime: 'nodejs' // 👈 fuerza el uso de Node.js runtime
 };
