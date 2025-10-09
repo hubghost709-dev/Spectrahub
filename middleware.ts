@@ -1,29 +1,27 @@
-import { authMiddleware } from "@clerk/nextjs";
-import createIntlMiddleware from "next-intl/middleware";
+import { NextRequest, NextResponse } from 'next/server';
+import { authMiddleware } from '@clerk/nextjs';
+import createMiddleware from 'next-intl/middleware';
 
-const locales = ["en", "es"];
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale: "es",
+const intlMiddleware = createMiddleware({
+  locales: ['en', 'es'],
+  defaultLocale: 'es'
 });
 
 export default authMiddleware({
-  beforeAuth(req) {
-    // Ejecuta next-intl antes de Clerk
+  beforeAuth: (req) => {
     return intlMiddleware(req);
   },
   publicRoutes: [
-    "/", 
-    "/:locale",
-    "/:locale/sign-in",
-    "/:locale/sign-up",
-  ],
+    '/',
+    '/:locale',
+    '/:locale/sign-in',
+    '/:locale/sign-up'
+  ]
 });
 
 export const config = {
   matcher: [
-    "/((?!_next|.*\\..*|favicon.ico).*)",
-    "/(en|es)/:path*",
-  ],
+    '/((?!_next|.*\\..*|favicon.ico).*)',
+    '/(en|es)/:path*'
+  ]
 };
-
