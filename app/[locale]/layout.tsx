@@ -18,29 +18,25 @@ export default async function RootLayout({
   params: { locale: string };
 }) {
   const { locale } = params;
-  const messages = await getMessages({ locale }); // ✅ FIX
+  const messages = await getMessages({ locale });
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={inter.className}>
-     
-       <NextIntlClientProvider locale={locale} messages={messages}>
-  <ClerkProvider>
-     <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="spectrahub-theme"
-        >
-      <AuthWrapper locale={locale}>
-        {children}
-      </AuthWrapper>
-      <Toaster />
-    </ThemeProvider>
-  </ClerkProvider>
-</NextIntlClientProvider>
-        
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang={locale} suppressHydrationWarning>
+        <body className={inter.className}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+              storageKey="spectrahub-theme"
+            >
+              <AuthWrapper locale={locale}>{children}</AuthWrapper>
+              <Toaster />
+            </ThemeProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
