@@ -11,7 +11,12 @@ const handler = authMiddleware({
   beforeAuth: (req) => {
     return intlMiddleware(req);
   },
-  publicRoutes: ['/', '/:locale', '/:locale/sign-in', '/:locale/sign-up'],
+  publicRoutes: [
+    '/',
+    '/:locale',
+    '/:locale/sign-in',
+    '/:locale/sign-up',
+  ],
 });
 
 export default handler;
@@ -19,7 +24,7 @@ export default handler;
 export const config = {
   matcher: [
     '/((?!_next|.*\\..*|favicon.ico).*)',
-    '/(en|es)/:path*'
+    '/(en|es)/:path*',
   ],
-  runtime: 'nodejs', // 👈 fuerza ejecución en Node.js runtime
+  runtime: 'nodejs', // 👈 Fuerza ejecución en entorno Node.js (no Edge)
 };
