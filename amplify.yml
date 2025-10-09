@@ -5,7 +5,7 @@ frontend:
   phases:
     preBuild:
       commands:
-            - npx dotenv-vault pull production
+          
             - npm install
      
           
