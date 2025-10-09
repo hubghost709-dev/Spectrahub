@@ -1,14 +1,12 @@
 version: 1
 env:
-  secretsManager: false  
+  secretsManager: true 
 frontend:
   phases:
     preBuild:
       commands:
-     
         - npm install
      
-      
     build:
       commands:
         - npm run build
