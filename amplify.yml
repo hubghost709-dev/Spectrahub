@@ -1,12 +1,15 @@
 version: 1
 env:
-  secretsManager: true 
+  secretsManager: false
 frontend:
   phases:
     preBuild:
       commands:
+        - npx dotenv-vault pull production
+        - npm install
         - npm ci
-     
+        
+          
     build:
       commands:
         - npm run build
