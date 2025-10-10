@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { GoalProgress } from "./goal-progress";
-import { toast } from "sonner";
 
+// Define la misma interfaz de meta
 interface TokenGoal {
   id: string;
   name: string;
@@ -16,46 +16,45 @@ interface TokenGoal {
   isCompleted: boolean;
 }
 
+// Este componente solo se encarga de mostrar la meta activa para el público
 export const StreamGoalDisplay = () => {
   const [activeGoal, setActiveGoal] = useState<TokenGoal | null>(null);
 
   const fetchActiveGoal = async () => {
     try {
-      // 🚨 IMPORTANTE: Asumimos que esta API ahora devuelve SOLO la meta activa,
-      // o que hay una nueva ruta, por ejemplo: /api/goals/active
+      // Pide TODAS las metas
       const response = await fetch("/api/goals"); 
       
       if (!response.ok) throw new Error("Failed to fetch goals");
       
       const goals: TokenGoal[] = await response.json();
       
-      // Filtramos para encontrar la meta activa
+      // Filtra y encuentra la meta marcada como activa por el streamer
       const currentActive = goals.find(goal => goal.isActive);
       
       setActiveGoal(currentActive || null);
       
     } catch (error) {
-      console.error("Failed to load active goal for viewer:", error);
-      // No mostramos toast a los espectadores, solo un error en consola
+      console.error("Error cargando la meta activa:", error);
     }
   };
 
   useEffect(() => {
     fetchActiveGoal();
-    // 🔔 Refresca la meta cada 30 segundos para actualizar el progreso
+    // Refresca la meta cada 30 segundos para actualizar el progreso
     const interval = setInterval(fetchActiveGoal, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Si no hay meta activa, no mostramos nada
+  // Si no hay meta activa, no muestra nada en la interfaz del usuario
   if (!activeGoal) {
     return null; 
   }
 
-  // Renderiza el GoalProgress visible para el público
+  // Muestra la meta activa
   return (
-    <div className="p-4 border rounded-lg bg-card shadow-lg mb-4">
-      <h3 className="text-xl font-semibold mb-2">Meta de Stream</h3>
+    <div className="p-4 border rounded-lg bg-card shadow-lg mt-4">
+      <h3 className="text-xl font-semibold mb-2 text-primary">Token Goal Activo</h3>
       <GoalProgress
         name={activeGoal.name}
         targetAmount={activeGoal.targetAmount}
