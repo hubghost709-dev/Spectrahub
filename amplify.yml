@@ -1,14 +1,15 @@
 version: 1
-env:
-  secretsManager: false  
 frontend:
   phases:
     preBuild:
       commands:
-        - npm install
+        - export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        - nvm install --lts
+        - nvm use --lts
+        - nvm alias default 'lts/*'
+        - npm ci
     build:
       commands:
-        - npx prisma generate
         - npm run build
   artifacts:
     baseDirectory: .next
@@ -18,5 +19,3 @@ frontend:
     paths:
       - node_modules/**/*
   nodeVersion: "20"
-
-
