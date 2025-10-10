@@ -1,48 +1,42 @@
-import './globals.css';
-import { Inter } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs';
-import { ThemeProvider } from './components/theme-provider';
-import { Toaster } from 'sonner';
-import AuthWrapper from './components/AuthWrapper';
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import type { ReactNode } from 'react';
+import { auth } from "@clerk/nextjs/server";
+import { NextIntlClientProvider } from "next-intl";
+import { notFound, redirect } from "next/navigation";
+import { ReactNode } from "react";
 
-const inter = Inter({ subsets: ['latin'] });
+export const metadata = {
+  title: "Spectrahub",
+  description: "Live streaming platform",
+};
 
-export default async function RootLayout({
+export default async function LocaleLayout({
   children,
-  params,
+  params: { locale },
 }: {
   children: ReactNode;
   params: { locale: string };
 }) {
-  const { locale } = params;
-  let messages = {};
+  // 🔐 Clerk server-side auth
+  const { userId } = auth();
 
+  // 🔸 Protege rutas privadas
+  // if (!userId) redirect(`/${locale}/sign-in`);
+
+  let messages;
   try {
-    messages = await getMessages({ locale });
-  } catch (error) {
-    console.error('❌ Error cargando mensajes:', error);
+    messages = (await import(`../../messages/${locale}.json`)).default;
+  } catch {
+    notFound();
   }
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang={locale}>
+      <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClerkProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem={false}
-              storageKey="spectrahub-theme"
-            >
-              <AuthWrapper locale={locale}>{children}</AuthWrapper>
-              <Toaster />
-            </ThemeProvider>
-          </ClerkProvider>
+          {children}
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
+
+
