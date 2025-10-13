@@ -37,3 +37,4 @@ export default function AgeVerificationModal({ onAccept, translations }: AgeVeri
     </div>
   );
 }
+

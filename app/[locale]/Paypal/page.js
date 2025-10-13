@@ -28,15 +28,15 @@ function HomePage() {
                 <h2 className="text-xl font-bold text-center mb-4">Seleccione un paquete</h2>
                 <ul className="space-y-4">
                     {items.map((item) => (
-                        <li
-                            key={item.id}
-                            className={`p-4 rounded-lg border-2 ${
-                                selectedItem?.id === item.id
-                                    ? "border-blue-500 bg-blue-100 text-blue-900"
-                                    : "border-gray-500 bg-gray-100 text-gray-900"
-                            } cursor-pointer`}
-                            onClick={() => handleItemSelect(item)}
-                        >
+                       <li
+    key={item.id}
+    className={`p-4 rounded-lg border-2 ${
+        selectedItem?.id === item.id
+            ? "border-blue-500 bg-blue-700 text-white" // <-- CAMBIO AQUÍ para seleccionado
+            : "border-gray-700 bg-gray-800 text-gray-100" // <-- CAMBIO AQUÍ para no seleccionado
+    } cursor-pointer`}
+    onClick={() => handleItemSelect(item)}
+>
                             <div className="flex justify-between items-center">
                                 <div className="text-2xl font-bold">{item.quantity}</div>
                                 <div className="text-xl font-bold">${item.price.toFixed(2)}</div>

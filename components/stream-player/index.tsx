@@ -1,4 +1,4 @@
-"use client";
+"use client";  
 
 import { useViewerToken } from "@/hooks/use-viewer-token";
 import { LiveKitRoom } from "@livekit/components-react";
@@ -54,7 +54,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
   useEffect(() => {
     const fetchGoals = async () => {
       try {
-        const response = await fetch(`/api/goals?username=${user.username}`);
+        const response = await fetch("/api/goals");
         if (!response.ok) throw new Error("Failed to fetch goals");
         const data = await response.json();
         setGoals(data.filter((goal: any) => goal.isActive && !goal.isCompleted));
