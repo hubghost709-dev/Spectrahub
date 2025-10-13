@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { db } from "@/lib/db";
 
+// 🟢 Crear nueva meta (solo streamer autenticado)
 export async function POST(req: Request) {
   try {
     const { userId } = auth();
@@ -40,55 +41,57 @@ export async function POST(req: Request) {
   }
 }
 
+// 🟡 Obtener metas activas (para streamer o viewers)
 export async function GET(req: Request) {
   try {
-    // Try to get authenticated user first
+    const { searchParams } = new URL(req.url);
+    const username = searchParams.get("username");
     const { userId } = auth();
     let targetUser = null;
 
-    if (userId) {
-      // If authenticated, check if we're in the dashboard
-      const url = new URL(req.headers.get("referer") || "");
-      const isDashboard = url.pathname.includes("/u/");
-      
-      if (isDashboard) {
-        // For dashboard view, get goals for the authenticated user
-        targetUser = await db.user.findUnique({
-          where: { externalUserId: userId },
-        });
-      }
+    // 1️⃣ Si viene username por query (viewers)
+    if (username) {
+      targetUser = await db.user.findUnique({
+        where: { username },
+      });
     }
 
-    // If not authenticated or not in dashboard, get user from URL
-    if (!targetUser) {
-      const url = new URL(req.headers.get("referer") || "");
-      const pathParts = url.pathname.split("/");
-      const username = pathParts[1]; // Gets username from /:username or /u/:username
-
-      if (!username) {
-        return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-      }
-
-      targetUser = await db.user.findFirst({
-        where: {
-          username: username.startsWith("u/") ? username.substring(2) : username,
-        },
+    // 2️⃣ Si no hay username, usar usuario autenticado (streamer dashboard)
+    if (!targetUser && userId) {
+      targetUser = await db.user.findUnique({
+        where: { externalUserId: userId },
       });
+    }
+
+    // 3️⃣ Si aún no hay usuario, intentar deducirlo del referer (fallback)
+    if (!targetUser) {
+      const referer = req.headers.get("referer") || "";
+      const url = new URL(referer, "https://dummy-base/");
+      const pathParts = url.pathname.split("/");
+      const pathUsername = pathParts[1];
+
+      if (pathUsername) {
+        targetUser = await db.user.findUnique({
+          where: {
+            username: pathUsername.startsWith("u/")
+              ? pathUsername.substring(2)
+              : pathUsername,
+          },
+        });
+      }
     }
 
     if (!targetUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get active goals for the user
+    // 🔹 Buscar las metas activas del usuario
     const goals = await db.tokenGoal.findMany({
       where: {
         userId: targetUser.id,
         isActive: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(goals);
@@ -98,6 +101,7 @@ export async function GET(req: Request) {
   }
 }
 
+// 🟣 Actualizar meta existente (solo streamer autenticado)
 export async function PATCH(req: Request) {
   try {
     const { userId } = auth();
@@ -130,9 +134,9 @@ export async function PATCH(req: Request) {
     const updatedGoal = await db.tokenGoal.update({
       where: { id: goalId },
       data: {
-        currentAmount: currentAmount !== undefined ? currentAmount : goal.currentAmount,
-        isCompleted: isCompleted !== undefined ? isCompleted : goal.isCompleted,
-        isActive: isActive !== undefined ? isActive : goal.isActive,
+        currentAmount: currentAmount ?? goal.currentAmount,
+        isCompleted: isCompleted ?? goal.isCompleted,
+        isActive: isActive ?? goal.isActive,
       },
     });
 

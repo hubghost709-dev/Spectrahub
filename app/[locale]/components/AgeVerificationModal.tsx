@@ -2,13 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 
-export default function AgeVerificationModal({
-  onAccept,
-  translations,
-}: {
+interface AgeVerificationModalProps {
   onAccept: () => void;
   translations: ReturnType<typeof useTranslations>;
-}) {
+}
+
+export default function AgeVerificationModal({ onAccept, translations }: AgeVerificationModalProps) {
   const handleUnder18 = () => {
     alert(translations('alert'));
   };

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,58 +8,50 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  username       String   @unique
-  imageUrl       String
-  externalUserId String   @unique
-  bio            String?
-  tokens         Int      @default(0)
-  isVerifiedModel Boolean @default(false)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  following  Follow[] @relation("Following")
-  follower   Follow[] @relation("Follower")
-
-  blocking   Block[]  @relation("Blocking")
-  blockedBy  Block[]  @relation("BlockedBy")
-
-  stream Stream?
-  goals TokenGoal[]
-  tipMenuItems TipMenuItem[]
-  kingOfRooms KingOfRoom[]
-  sentTips Tip[] @relation("SentTips")
-  receivedTips Tip[] @relation("ReceivedTips")
-
+  id                String             @id @default(uuid())
+  username          String             @unique
+  imageUrl          String
+  externalUserId    String             @unique
+  bio               String?
+  tokens            Int                @default(0)
+  isVerifiedModel   Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  blockedBy         Block[]            @relation("BlockedBy")
+  blocking          Block[]            @relation("Blocking")
+  following         Follow[]           @relation("Following")
+  follower          Follow[]           @relation("Follower")
+  kingOfRooms       KingOfRoom[]
   modelVerification ModelVerification?
-  redemptions Redemption[]
+  redemptions       Redemption[]
+  stream            Stream?
+  receivedTips      Tip[]              @relation("ReceivedTips")
+  sentTips          Tip[]              @relation("SentTips")
+  tipMenuItems      TipMenuItem[]
+  goals             TokenGoal[]
 }
 
 model Stream {
-  id              String   @id @default(uuid())
-  name            String
-  thumbnailUrl    String?
-  ingressId       String?  @unique
-  serverUrl       String?
-  streamKey       String?
-  pinnedMessage   String?  @default("")
-  streamTopic     String?  @default("")
-  kingTokens      Int      @default(100)
-  blockedCountries String[] @default([])
-
-  isLive          Boolean @default(false)
-  isChatEnabled   Boolean @default(true)
-  isChatDelayed   Boolean @default(true)
-  isChatFollowersOnly Boolean @default(true)
-
-  userId          String  @unique
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kingOfRoom      KingOfRoom?
-  tips            Tip[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String      @id @default(uuid())
+  name                String
+  thumbnailUrl        String?
+  ingressId           String?     @unique
+  serverUrl           String?
+  streamKey           String?
+  pinnedMessage       String?     @default("")
+  streamTopic         String?     @default("")
+  kingTokens          Int         @default(100)
+  blockedCountries    String[]    @default([])
+  isLive              Boolean     @default(false)
+  isChatEnabled       Boolean     @default(true)
+  isChatDelayed       Boolean     @default(true)
+  isChatFollowersOnly Boolean     @default(true)
+  userId              String      @unique
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  kingOfRoom          KingOfRoom?
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tips                Tip[]
 
   @@index([userId])
   @@index([ingressId])
@@ -75,10 +64,9 @@ model Tip {
   senderId    String
   recipientId String
   createdAt   DateTime @default(now())
-
-  stream      Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
-  sender      User     @relation("SentTips", fields: [senderId], references: [id], onDelete: Cascade)
   recipient   User     @relation("ReceivedTips", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User     @relation("SentTips", fields: [senderId], references: [id], onDelete: Cascade)
+  stream      Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@index([streamId])
   @@index([senderId])
@@ -86,15 +74,13 @@ model Tip {
 }
 
 model Follow {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
   followerId  String
   followingId String
-
-  follower    User   @relation(name: "Following", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User   @relation(name: "Follower", fields: [followingId], references: [id], onDelete: Cascade)
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Follower", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@index([followerId])
@@ -102,15 +88,13 @@ model Follow {
 }
 
 model Block {
-  id          String @id @default(uuid())
-  blockerId   String
-  blockedId   String
-
-  blocker     User   @relation(name: "Blocking", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked     User   @relation(name: "BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blocked   User     @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocker   User     @relation("Blocking", fields: [blockerId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
   @@index([blockerId])
@@ -122,70 +106,58 @@ model KingOfRoom {
   streamId    String   @unique
   userId      String
   totalTokens Int      @default(0)
-  stream      Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  stream      Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([streamId])
   @@index([userId])
 }
 
-enum VerificationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model ModelVerification {
-  id           String            @id @default(uuid())
-  userId       String            @unique
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String             @id @default(uuid())
+  userId       String             @unique
   fullName     String
   birthDate    DateTime
   idFrontImage String
   idBackImage  String
   selfieImage  String
   status       VerificationStatus @default(PENDING)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-enum RedemptionStatus {
-  PENDING
-  COMPLETED
-  FAILED
 }
 
 model Redemption {
   id             String           @id @default(uuid())
   userId         String
-  user           User             @relation(fields: [userId], references: [id])
   tokensRedeemed Int
   usdAmount      Float
   paypalEmail    String
   status         RedemptionStatus @default(PENDING)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
 model TokenGoal {
-  id          String   @id @default(uuid())
-  name        String
-  targetAmount Int
-  currentAmount Int    @default(0)
-  isActive    Boolean  @default(true)
-  isCompleted Boolean  @default(false)
-  theme       String   @default("default")
-  color       String   @default("#1010f2")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  targetAmount  Int
+  currentAmount Int      @default(0)
+  isActive      Boolean  @default(true)
+  isCompleted   Boolean  @default(false)
+  theme         String   @default("default")
+  color         String   @default("#1010f2")
+  userId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -197,9 +169,21 @@ model TipMenuItem {
   tokens      Int
   isActive    Boolean  @default(true)
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RedemptionStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }

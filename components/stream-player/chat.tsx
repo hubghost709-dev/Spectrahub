@@ -9,6 +9,8 @@ import {
 import { ConnectionState } from "livekit-client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
+import { motion } from "framer-motion";
+
 import ChatHeader, { ChatHeaderSkeleton } from "./chat-header";
 import ChatForm, { ChatFormSkeleton } from "./chat-form";
 import ChatList, { ChatListSkeleton } from "./chat-list";
@@ -41,7 +43,6 @@ function Chat({
   const participant = useRemoteParticipant(hostIdentity);
 
   const isOnline = participant && connectionState === ConnectionState.Connected;
-
   const isHidden = !isChatEnabled || !isOnline;
 
   const [value, setValue] = useState("");
@@ -59,7 +60,6 @@ function Chat({
 
   const onSubmit = () => {
     if (!send) return;
-
     send(value);
     setValue("");
   };
@@ -69,24 +69,49 @@ function Chat({
   };
 
   return (
-    <div className="flex flex-col bg-[#333131] border-l border-b pt-0 h-[calc(100vh-80px)]">
+    <div className="flex flex-col bg-[#333131] h-full">
       <ChatHeader />
       {variant === ChatVariant.CHAT && (
         <>
-          <ChatList 
-            messages={reversedMessages} 
-            isHidden={isHidden} 
+          <ChatList
+            messages={reversedMessages}
+            isHidden={isHidden}
             pinnedMessage={pinnedMessage}
           />
-          <ChatForm
-            onSubmit={onSubmit}
-            value={value}
-            onChange={onChange}
-            isHidden={isHidden}
-            isFollowersOnly={isChatFollowersOnly}
-            isDelayed={isChatDelayed}
-            isFollowing={isFollowing}
-          />
+
+          {/* Input normal en desktop */}
+          {!matches && (
+            <ChatForm
+              onSubmit={onSubmit}
+              value={value}
+              onChange={onChange}
+              isHidden={isHidden}
+              isFollowersOnly={isChatFollowersOnly}
+              isDelayed={isChatDelayed}
+              isFollowing={isFollowing}
+            />
+          )}
+
+          {/* Input flotante con animación en móvil */}
+          {matches && (
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="chat-input-mobile"
+            >
+              <ChatForm
+                onSubmit={onSubmit}
+                value={value}
+                onChange={onChange}
+                isHidden={isHidden}
+                isFollowersOnly={isChatFollowersOnly}
+                isDelayed={isChatDelayed}
+                isFollowing={isFollowing}
+              />
+            </motion.div>
+          )}
         </>
       )}
       {variant === ChatVariant.COMMUNITY && (
