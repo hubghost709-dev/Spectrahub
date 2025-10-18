@@ -1,4 +1,4 @@
-"use client";  
+"use client";
 
 import { useViewerToken } from "@/hooks/use-viewer-token";
 import { LiveKitRoom } from "@livekit/components-react";
@@ -153,7 +153,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
           <>
             {/* Botón flotante */}
             <button
-              onClick={() => setChatOpen(true)}
+              onClick={() => setChatOpen(!chatOpen)}
               className="fixed bottom-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full shadow-lg z-50"
             >
               Chat
@@ -161,42 +161,37 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
 
             {/* Drawer con animación */}
             <AnimatePresence>
-              {chatOpen && (
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: chatOpen ? 0 : "100%" }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="fixed inset-0 bg-black/60 flex justify-center items-end z-50"
+                style={{ pointerEvents: chatOpen ? "auto" : "none" }}
+              >
                 <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="fixed inset-0 bg-black/60 flex justify-center items-end z-50"
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: chatOpen ? 0 : 100, opacity: chatOpen ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="w-full h-[70vh] bg-[#1e1e1e] rounded-t-2xl p-4 flex flex-col"
                 >
-                  <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="w-full h-[70vh] bg-[#1e1e1e] rounded-t-2xl p-4 flex flex-col"
-                  >
-                    <div className="flex justify-between items-center text-white mb-2">
-                      <h2 className="text-lg font-semibold">Chat</h2>
-                      <button onClick={() => setChatOpen(false)}>✖</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <Chat
-                        viewerName={name}
-                        hostName={user.username}
-                        hostIdentity={user.id}
-                        isFollowing={isFollowing}
-                        isChatEnabled={stream.isChatEnabled}
-                        isChatDelayed={stream.isChatDelayed}
-                        isChatFollowersOnly={stream.isChatFollowersOnly}
-                        pinnedMessage={
-                          stream.pinnedMessage || stream.streamTopic || ""
-                        }
-                      />
-                    </div>
-                  </motion.div>
+                  <div className="flex justify-between items-center text-white mb-2">
+                    <h2 className="text-lg font-semibold">Chat</h2>
+                    <button onClick={() => setChatOpen(false)}>✖</button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <Chat
+                      viewerName={name}
+                      hostName={user.username}
+                      hostIdentity={user.id}
+                      isFollowing={isFollowing}
+                      isChatEnabled={stream.isChatEnabled}
+                      isChatDelayed={stream.isChatDelayed}
+                      isChatFollowersOnly={stream.isChatFollowersOnly}
+                      pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+                    />
+                  </div>
                 </motion.div>
-              )}
+              </motion.div>
             </AnimatePresence>
           </>
         )}
@@ -220,3 +215,4 @@ export const StreamPlayerSkeleton = () => {
     </div>
   );
 };
+
