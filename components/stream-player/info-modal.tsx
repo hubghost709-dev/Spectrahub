@@ -38,11 +38,19 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Solo actualizamos el nombre si es diferente del inicial
+    if (name === initialName) {
+      toast.info("No changes to save");
+      return;
+    }
+
     startTransition(() => {
-      updateStream({ name, thumbnailUrl }) // ✅ Ahora también guarda el thumbnailUrl
+      updateStream({ name })
         .then(() => {
           toast.success("Stream updated");
           closeRef?.current?.click();
+          router.refresh();
         })
         .catch(() => toast.error("Something went wrong"));
     });
@@ -54,7 +62,7 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
         .then(() => {
           toast.success("Thumbnail removed");
           setThumbnailUrl(null);
-          closeRef?.current?.click();
+          router.refresh();
         })
         .catch(() => toast.error("Something went wrong"));
     });
@@ -118,23 +126,25 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                   }}
                   onClientUploadComplete={(res: any) => {
                     const uploadedUrl = res?.[0]?.url;
+                    console.log("Uploaded URL:", uploadedUrl); // Para debugging
+                    
                     if (uploadedUrl) {
-                      // ✅ AQUÍ ESTÁ LA CORRECCIÓN: Guardamos en la BD inmediatamente
                       startTransition(() => {
                         updateStream({ thumbnailUrl: uploadedUrl })
                           .then(() => {
                             setThumbnailUrl(uploadedUrl);
                             toast.success("Thumbnail uploaded successfully");
                             router.refresh();
-                            closeRef?.current?.click();
                           })
-                          .catch(() => {
+                          .catch((error) => {
+                            console.error("Error saving thumbnail:", error);
                             toast.error("Failed to save thumbnail");
                           });
                       });
                     }
                   }}
                   onUploadError={(error: Error) => {
+                    console.error("Upload error:", error);
                     toast.error(`Upload failed: ${error.message}`);
                   }}
                 />
