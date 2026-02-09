@@ -15,10 +15,9 @@ import { updateStream } from "@/actions/stream";
 import { toast } from "sonner";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
-import {Hint} from "../hint";
+import { Hint } from "../hint";
 import { Trash } from "lucide-react";
 import Image from "next/image";
-import type { OurFileRouter } from "@/app/api/uploadthing/core"; // Añade esta importación
 
 type Props = {
   initialName: string;
@@ -40,7 +39,7 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     startTransition(() => {
-      updateStream({ name })
+      updateStream({ name, thumbnailUrl }) // ✅ Ahora también guarda el thumbnailUrl
         .then(() => {
           toast.success("Stream updated");
           closeRef?.current?.click();
@@ -106,8 +105,7 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                 />
               </div>
             ) : (
-            
-            <div className="rounded-xl border outline-dashed outline-muted">
+              <div className="rounded-xl border outline-dashed outline-muted">
                 <UploadDropzone
                   endpoint="thumbnailUploader"
                   appearance={{
@@ -119,9 +117,25 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                     },
                   }}
                   onClientUploadComplete={(res: any) => {
-                    setThumbnailUrl(res?.[0]?.url);
-                    router.refresh();
-                    closeRef?.current?.click();
+                    const uploadedUrl = res?.[0]?.url;
+                    if (uploadedUrl) {
+                      // ✅ AQUÍ ESTÁ LA CORRECCIÓN: Guardamos en la BD inmediatamente
+                      startTransition(() => {
+                        updateStream({ thumbnailUrl: uploadedUrl })
+                          .then(() => {
+                            setThumbnailUrl(uploadedUrl);
+                            toast.success("Thumbnail uploaded successfully");
+                            router.refresh();
+                            closeRef?.current?.click();
+                          })
+                          .catch(() => {
+                            toast.error("Failed to save thumbnail");
+                          });
+                      });
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    toast.error(`Upload failed: ${error.message}`);
                   }}
                 />
               </div>
