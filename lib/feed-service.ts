@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { getSelf } from "@/lib/auth-service";
@@ -49,7 +48,12 @@ export const getStreams = async () => {
           : {},
       ],
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      thumbnailUrl: true, // ✅ Aseguramos que se incluya
+      isLive: true,
+      updatedAt: true,
       user: {
         select: {
           id: true,
