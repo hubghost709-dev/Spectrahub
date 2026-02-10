@@ -1,12 +1,12 @@
-import { getMessages } from 'next-intl/server';
+import  Logo  from "./_components/logo";
 
-export default async function AuthLayout({ children, params }) {
-  const messages = await getMessages({ locale: params.locale });
-
+const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <NextIntlClientProvider messages={messages}>
+    <div className="h-full flex flex-col items-center justify-center space-y-6">
+      <Logo />
       {children}
-    </NextIntlClientProvider>
+    </div>
   );
-}
+};
 
+export default AuthLayout;
