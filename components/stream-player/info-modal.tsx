@@ -38,12 +38,6 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Solo actualizamos el nombre si es diferente del inicial
-    if (name === initialName) {
-      toast.info("No changes to save");
-      return;
-    }
 
     startTransition(() => {
       updateStream({ name })
@@ -124,9 +118,8 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                       color: "#FFFFFF",
                     },
                   }}
-                  onClientUploadComplete={(res: any) => {
+                  onClientUploadComplete={(res) => {
                     const uploadedUrl = res?.[0]?.url;
-                    console.log("Uploaded URL:", uploadedUrl); // Para debugging
                     
                     if (uploadedUrl) {
                       startTransition(() => {
@@ -136,15 +129,13 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                             toast.success("Thumbnail uploaded successfully");
                             router.refresh();
                           })
-                          .catch((error) => {
-                            console.error("Error saving thumbnail:", error);
+                          .catch(() => {
                             toast.error("Failed to save thumbnail");
                           });
                       });
                     }
                   }}
                   onUploadError={(error: Error) => {
-                    console.error("Upload error:", error);
                     toast.error(`Upload failed: ${error.message}`);
                   }}
                 />
