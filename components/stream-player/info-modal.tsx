@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useRef, ElementRef, useTransition } from "react";
 import {
   Dialog,
@@ -7,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription, // ✅ agregado
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -27,7 +29,7 @@ type Props = {
 export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
   const closeRef = useRef<ElementRef<"button">>(null);
   const router = useRouter();
-  
+
   const [name, setName] = useState(initialName);
   const [thumbnailUrl, setThumbnailUrl] = useState(initialThumbnailUrl);
   const [isPending, startTransition] = useTransition();
@@ -43,7 +45,7 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
       updateStream({ name })
         .then(() => {
           toast.success("Stream updated");
-          closeRef?.current?.click();
+          closeRef.current?.click();
           router.refresh();
         })
         .catch(() => toast.error("Something went wrong"));
@@ -69,10 +71,17 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
           Edit
         </Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit stream info</DialogTitle>
+
+          {/* ✅ IMPORTANTE: evita el warning de Radix */}
+          <DialogDescription className="sr-only">
+            Dialog to edit the stream name and thumbnail image.
+          </DialogDescription>
         </DialogHeader>
+
         <form className="space-y-14" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label>Name</Label>
@@ -83,8 +92,10 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
               disabled={isPending}
             />
           </div>
+
           <div className="space-y-2">
             <Label>Thumbnail</Label>
+
             {thumbnailUrl ? (
               <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10">
                 <div className="absolute top-2 right-2 z-[10]">
@@ -99,6 +110,7 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                     </Button>
                   </Hint>
                 </div>
+
                 <Image
                   src={thumbnailUrl}
                   alt="Thumbnail"
@@ -111,51 +123,46 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                 <UploadDropzone
                   endpoint="thumbnailUploader"
                   appearance={{
-                    label: {
-                      color: "#FFFFFF",
-                    },
-                    allowedContent: {
-                      color: "#FFFFFF",
-                    },
+                    label: { color: "#FFFFFF" },
+                    allowedContent: { color: "#FFFFFF" },
                   }}
                   onClientUploadComplete={(res) => {
-                    console.log("📤 Upload complete, response:", res);
                     const uploadedUrl = res?.[0]?.url;
-                    console.log("🔗 Uploaded URL:", uploadedUrl);
-                    
-                    if (uploadedUrl) {
-                      startTransition(() => {
-                        console.log("💾 Calling updateStream with URL:", uploadedUrl);
-                        updateStream({ thumbnailUrl: uploadedUrl })
-                          .then((result) => {
-                            console.log("✅ Update successful:", result);
-                            setThumbnailUrl(uploadedUrl);
-                            toast.success("Thumbnail uploaded successfully");
-                            router.refresh();
-                          })
-                          .catch((error) => {
-                            console.error("❌ Update failed:", error);
-                            toast.error("Failed to save thumbnail");
-                          });
-                      });
-                    } else {
-                      console.error("❌ No URL in response");
-                    }
+
+                    if (!uploadedUrl) return;
+
+                    startTransition(() => {
+                      updateStream({ thumbnailUrl: uploadedUrl })
+                        .then(() => {
+                          setThumbnailUrl(uploadedUrl);
+                          toast.success("Thumbnail uploaded and saved!");
+                          router.refresh();
+
+                          setTimeout(() => {
+                            closeRef.current?.click();
+                          }, 500);
+                        })
+                        .catch((error) => {
+                          console.error("Error saving thumbnail:", error);
+                          toast.error("Failed to save thumbnail");
+                        });
+                    });
                   }}
                   onUploadError={(error: Error) => {
-                    console.error("❌ Upload error:", error);
                     toast.error(`Upload failed: ${error.message}`);
                   }}
                 />
               </div>
             )}
           </div>
+
           <div className="flex justify-between">
             <DialogClose ref={closeRef} asChild>
               <Button type="button" variant="ghost">
                 Cancel
               </Button>
             </DialogClose>
+
             <Button variant="primary" type="submit" disabled={isPending}>
               Save
             </Button>
