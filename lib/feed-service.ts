@@ -51,7 +51,7 @@ export const getStreams = async () => {
     select: {
       id: true,
       name: true,
-      thumbnailUrl: true, // ✅ Explícitamente incluimos thumbnailUrl
+      thumbnailUrl: true,
       isLive: true,
       updatedAt: true,
       user: {
