@@ -9,6 +9,11 @@ import { getMessages } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
+export const metadata = {
+  title: "SpectraHUB – Live Streaming Platform",
+  description: "Adult live streaming platform for creators",
+  openGraph: {...},
+}
 
 export default async function RootLayout({
   children,
