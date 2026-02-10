@@ -41,8 +41,6 @@ export const updateStream = async (values: ValidData) => {
     if (values.kingTokens !== undefined) validData.kingTokens = values.kingTokens;
     if (values.blockedCountries !== undefined) validData.blockedCountries = values.blockedCountries;
 
-    console.log("Updating stream with data:", validData); // Para debugging
-
     const stream = await db.stream.update({
       where: {
         id: selfStream.id,
@@ -50,12 +48,10 @@ export const updateStream = async (values: ValidData) => {
       data: validData,
     });
 
-    console.log("Stream updated:", stream); // Para debugging
-
     revalidatePath(`/u/${self.username}/chat`);
     revalidatePath(`/u/${self.username}`);
     revalidatePath(`/${self.username}`);
-    revalidatePath(`/`); // ✅ Agregamos esto para revalidar la página principal
+    revalidatePath('/');
     
     return stream;
   } catch (error) {
