@@ -1,31 +1,12 @@
-'use client';
+import { getMessages } from 'next-intl/server';
 
-import { ClerkProvider } from '@clerk/nextjs';
-import { ThemeProvider } from '@/app/components/theme-provider';
-import { Toaster } from 'sonner';
-import AuthWrapper from '@/app/components/AuthWrapper';
-import { NextIntlClientProvider } from 'next-intl';
-import type { ReactNode } from 'react';
+export default async function AuthLayout({ children, params }) {
+  const messages = await getMessages({ locale: params.locale });
 
-export default function AuthLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
   return (
-    <ClerkProvider>
-      <NextIntlClientProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="spectrahub-theme"
-        >
-          <AuthWrapper>{children}</AuthWrapper>
-          <Toaster />
-        </ThemeProvider>
-      </NextIntlClientProvider>
-    </ClerkProvider>
+    <NextIntlClientProvider messages={messages}>
+      {children}
+    </NextIntlClientProvider>
   );
 }
 
