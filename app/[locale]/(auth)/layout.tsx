@@ -1,12 +1,31 @@
-import  Logo  from "./_components/logo";
+'use client';
 
-const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+import { ClerkProvider } from '@clerk/nextjs';
+import { ThemeProvider } from '@/app/components/theme-provider';
+import { Toaster } from 'sonner';
+import AuthWrapper from '@/app/components/AuthWrapper';
+import { NextIntlClientProvider } from 'next-intl';
+import type { ReactNode } from 'react';
+
+export default function AuthLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
-    <div className="h-full flex flex-col items-center justify-center space-y-6">
-      <Logo />
-      {children}
-    </div>
+    <ClerkProvider>
+      <NextIntlClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          storageKey="spectrahub-theme"
+        >
+          <AuthWrapper>{children}</AuthWrapper>
+          <Toaster />
+        </ThemeProvider>
+      </NextIntlClientProvider>
+    </ClerkProvider>
   );
-};
+}
 
-export default AuthLayout;
