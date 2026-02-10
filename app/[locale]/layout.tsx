@@ -9,11 +9,11 @@ import { getMessages } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
+
 export const metadata = {
   title: "SpectraHUB – Live Streaming Platform",
   description: "Adult live streaming platform for creators",
-  openGraph: {...},
-}
+};
 
 export default async function RootLayout({
   children,
@@ -22,33 +22,28 @@ export default async function RootLayout({
   children: ReactNode;
   params: { locale: string };
 }) {
-  const { locale } = params;
-  let messages = {};
-
-  try {
-    messages = await getMessages({ locale });
-  } catch (error) {
-    console.error('❌ Error cargando mensajes:', error);
-  }
+  const locale = params.locale;
+  const messages = await getMessages({ locale });
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClerkProvider>
+        <ClerkProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <ThemeProvider
               attribute="class"
               defaultTheme="dark"
               enableSystem={false}
               storageKey="spectrahub-theme"
             >
-              <AuthWrapper locale={locale}>{children}</AuthWrapper>
+              <AuthWrapper locale={locale}>
+                {children}
+              </AuthWrapper>
               <Toaster />
             </ThemeProvider>
-          </ClerkProvider>
-        </NextIntlClientProvider>
+          </NextIntlClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
 }
-
