@@ -119,23 +119,31 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                     },
                   }}
                   onClientUploadComplete={(res) => {
+                    console.log("📤 Upload complete, response:", res);
                     const uploadedUrl = res?.[0]?.url;
+                    console.log("🔗 Uploaded URL:", uploadedUrl);
                     
                     if (uploadedUrl) {
                       startTransition(() => {
+                        console.log("💾 Calling updateStream with URL:", uploadedUrl);
                         updateStream({ thumbnailUrl: uploadedUrl })
-                          .then(() => {
+                          .then((result) => {
+                            console.log("✅ Update successful:", result);
                             setThumbnailUrl(uploadedUrl);
                             toast.success("Thumbnail uploaded successfully");
                             router.refresh();
                           })
-                          .catch(() => {
+                          .catch((error) => {
+                            console.error("❌ Update failed:", error);
                             toast.error("Failed to save thumbnail");
                           });
                       });
+                    } else {
+                      console.error("❌ No URL in response");
                     }
                   }}
                   onUploadError={(error: Error) => {
+                    console.error("❌ Upload error:", error);
                     toast.error(`Upload failed: ${error.message}`);
                   }}
                 />
