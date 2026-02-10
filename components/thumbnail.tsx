@@ -16,9 +16,13 @@ export const Thumbnail = ({
   isLive,
   username,
 }: ThumbnailProps) => {
+  // Debugging
+  console.log("🖼️ Thumbnail component:", { src, fallback, username });
+  
   let content;
   
   if (!src) {
+    console.log("❌ No thumbnail URL, showing fallback for:", username);
     content = (
       <div className="bg-[#E60026] flex flex-col items-center justify-center gap-y-4 h-full w-full transition-transform group-hover:translate-x-2 group-hover:-translate-y-2 rounded-md">
         <UserAvatar
@@ -31,6 +35,7 @@ export const Thumbnail = ({
       </div>
     );
   } else {
+    console.log("✅ Showing thumbnail for:", username, "URL:", src);
     content = (
       <Image
         src={src}
