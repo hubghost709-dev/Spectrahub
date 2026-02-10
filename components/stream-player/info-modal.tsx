@@ -18,7 +18,10 @@ import { Hint } from "../hint";
 import { Trash, ImageIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useUploadThing } from "@/lib/uploadthing";
+import { generateReactHelpers } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 type Props = {
   initialName: string;
@@ -34,7 +37,6 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
   const [isPending, startTransition] = useTransition();
   const [isUploading, setIsUploading] = useState(false);
 
-  // Hook de UploadThing para subir directamente
   const { startUpload } = useUploadThing("thumbnailUploader", {
     onClientUploadComplete: (res) => {
       const uploadedUrl = res?.[0]?.url;
@@ -61,11 +63,9 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
     setName(e.target.value);
   };
 
-  // Auto-sube cuando el usuario selecciona un archivo
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setIsUploading(true);
     await startUpload([file]);
   };
@@ -140,7 +140,6 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
                 />
               </div>
             ) : (
-              // ✅ Input invisible con label clickeable - sube automáticamente
               <div className="rounded-xl border border-dashed border-muted">
                 <input
                   id="thumbnail-input"
