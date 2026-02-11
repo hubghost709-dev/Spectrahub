@@ -20,15 +20,16 @@ interface Stream {
   id: string;
   name: string;
   thumbnailUrl: string | null;
-  offlineThumbnailUrl: string | null; // ← agregado
+  offlineThumbnailUrl: string | null;
   isLive: boolean;
   user: User;
 }
-// ✅ Export default aquí, solo una vez
+
 export default async function Results() {
   const t = await getTranslations();
   const data = await getStreams();
 
+  // Filtrar solo streamers verificados
   const verifiedStreams = data.filter((stream) => stream.user.isVerifiedModel);
 
   return (
@@ -36,6 +37,7 @@ export default async function Results() {
       <h2 className="text-lg font-semibold mb-4">
         {t("verifiedModelsLiveNow")}
       </h2>
+
       {verifiedStreams.length === 0 && (
         <div className="text-muted-foreground text-sm">
           {t("noVerifiedModels")}
@@ -43,24 +45,25 @@ export default async function Results() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-    {verifiedStreams.map((result) => (
-  <ResultCard 
-    key={result.id} 
-    data={{
-      user: result.user,
-      isLive: result.isLive,
-      name: result.name,
-      // ✅ Si está en vivo, usa thumbnailUrl (captura), si no usa offlineThumbnailUrl
-      thumbnailUrl: result.isLive ? result.thumbnailUrl : result.offlineThumbnailUrl
-    }} 
-  />
-))}
+        {verifiedStreams.map((stream) => (
+          <ResultCard
+            key={stream.id}
+            data={{
+              user: stream.user,
+              isLive: stream.isLive,
+              name: stream.name,
+              thumbnailUrl: stream.isLive
+                ? stream.thumbnailUrl
+                : stream.offlineThumbnailUrl,
+            }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-// ✅ Export nombrada (correcta)
+// Skeleton para mostrar mientras se cargan los streams
 export const ResultsSkeleton = () => {
   return (
     <div>
