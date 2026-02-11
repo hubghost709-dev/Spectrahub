@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs";
 
 const f = createUploadthing();
 
-// Auth middleware
 const handleAuth = () => {
   const { userId } = auth();
   if (!userId) throw new Error("Unauthorized");
@@ -11,13 +10,11 @@ const handleAuth = () => {
 };
 
 export const ourFileRouter = {
-  // Define a simple image uploader with no middleware
   idVerification: f({
     image: { maxFileSize: "4MB", maxFileCount: 1 }
   })
     .middleware(() => handleAuth())
     .onUploadComplete(({ metadata, file }) => {
-      console.log("Upload complete for userId:", metadata.userId);
       return { url: file.url };
     }),
 
@@ -26,7 +23,15 @@ export const ourFileRouter = {
   })
     .middleware(() => handleAuth())
     .onUploadComplete(({ metadata, file }) => {
-      console.log("Upload complete for userId:", metadata.userId);
+      return { url: file.url };
+    }),
+
+  // ✅ Nuevo endpoint para capturas automáticas del stream
+  streamCapture: f({
+    image: { maxFileSize: "2MB", maxFileCount: 1 }
+  })
+    .middleware(() => handleAuth())
+    .onUploadComplete(({ metadata, file }) => {
       return { url: file.url };
     }),
 } satisfies FileRouter;
