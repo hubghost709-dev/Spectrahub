@@ -1,5 +1,5 @@
 "use client";
-import {ConnectionState, Track} from "livekit-client";
+import { ConnectionState, Track } from "livekit-client";
 import {
   useConnectionState,
   useRemoteParticipant,
@@ -8,23 +8,42 @@ import {
 import OfflineVideo from "./offline-video";
 import LoadingVideo from "./loading-video";
 import LiveVideo from "./live-video";
-import {Skeleton} from "../ui/skeleton";
+import { Skeleton } from "../ui/skeleton";
+import { useEffect } from "react";
+import { updateStreamLiveStatus } from "@/actions/ingress";
 
 type Props = {
   hostname: string;
   hostIdentity: string;
+  viewerIdentity: string;
 };
 
-function Video({hostIdentity, hostname}: Props) {
+function Video({ hostIdentity, hostname, viewerIdentity }: Props) {
   const connectionState = useConnectionState();
   const participant = useRemoteParticipant(hostIdentity);
-
   const tracks = useTracks([
     Track.Source.Camera,
     Track.Source.Microphone,
   ]).filter((track) => track.participant.identity === hostIdentity);
 
+  const isHostConnected = participant && tracks.length > 0;
+  const isHost = `host-${hostIdentity}` === viewerIdentity;
+
+  // Solo el host puede actualizar el estado isLive
+  useEffect(() => {
+    if (!isHost) return; // Solo el dueño del stream puede actualizar
+
+    if (connectionState === ConnectionState.Connected) {
+      if (isHostConnected) {
+        updateStreamLiveStatus(true).catch(console.error);
+      } else {
+        updateStreamLiveStatus(false).catch(console.error);
+      }
+    }
+  }, [isHostConnected, connectionState, isHost]);
+
   let content;
+
   if (!participant && connectionState === ConnectionState.Connected) {
     content = <OfflineVideo username={hostname} />;
   } else if (!participant || tracks.length === 0) {
@@ -32,6 +51,7 @@ function Video({hostIdentity, hostname}: Props) {
   } else {
     content = <LiveVideo participant={participant} />;
   }
+
   return <div className="aspect-video border-b group relative">{content}</div>;
 }
 
