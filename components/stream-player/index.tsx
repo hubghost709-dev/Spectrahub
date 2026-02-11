@@ -22,7 +22,7 @@ export type CustomStream = {
   isChatFollowersOnly: boolean;
   isLive: boolean;
   thumbnailUrl: string | null;
-  offlineThumbnailUrl: string | null; // ✅ agregado
+  offlineThumbnailUrl: string | null;
   name: string;
   pinnedMessage: string | null;
   streamTopic: string | null;
@@ -99,12 +99,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
     };
   }, [user.username]);
 
-  if (!serverUrl) {
-    console.error("NEXT_PUBLIC_LIVEKIT_WS_URL is missing");
-    return <StreamPlayerSkeleton />;
-  }
-
-  if (!token || !name || !identity) {
+  if (!serverUrl || !token || !name || !identity) {
     return <StreamPlayerSkeleton />;
   }
 
@@ -129,7 +124,6 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
           collapsed && "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2"
         )}
       >
-        {/* VIDEO + INFO */}
         <div className="space-y-4 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
           <Video
             hostname={user.username}
@@ -155,118 +149,3 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
 
           <Header
             hostName={user.username}
-            hostIdentity={user.id}
-            viewerIdentity={identity}
-            imageUrl={user.imageUrl}
-            isFollowing={isFollowing}
-            name={stream.name}
-            username={user.username}
-            isVerifiedModel={user.isVerifiedModel}
-          />
-
-          <InfoCard
-            hostIdentity={user.id}
-            viewerIdentity={identity}
-            name={stream.name}
-            thumbnailUrl={stream.offlineThumbnailUrl}
-          />
-
-          <AboutCard
-            hostName={user.username}
-            hostIdentity={user.id}
-            viewerIdentity={identity}
-            bio={user.bio}
-            followedByCount={user._count.follower}
-          />
-        </div>
-
-        {/* DESKTOP CHAT */}
-        {!isMobile && (
-          <div className={cn("col-span-1", collapsed && "hidden")}>
-            <Chat
-              viewerName={name}
-              hostName={user.username}
-              hostIdentity={user.id}
-              isFollowing={isFollowing}
-              isChatEnabled={stream.isChatEnabled}
-              isChatDelayed={stream.isChatDelayed}
-              isChatFollowersOnly={stream.isChatFollowersOnly}
-              pinnedMessage={pinned}
-            />
-          </div>
-        )}
-
-        {/* MOBILE CHAT */}
-        {isMobile && (
-          <>
-            <button
-              onClick={() => setChatOpen(true)}
-              className="fixed bottom-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full shadow-lg z-50"
-            >
-              Chat
-            </button>
-
-            <AnimatePresence>
-              {chatOpen && (
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="fixed inset-0 bg-black/60 flex justify-center items-end z-50"
-                >
-                  <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="w-full h-[70vh] bg-[#1e1e1e] rounded-t-2xl p-4 flex flex-col"
-                  >
-                    <div className="flex justify-between items-center text-white mb-2">
-                      <h2 className="text-lg font-semibold">Chat</h2>
-                      <button onClick={() => setChatOpen(false)}>
-                        ✖
-                      </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                      <Chat
-                        viewerName={name}
-                        hostName={user.username}
-                        hostIdentity={user.id}
-                        isFollowing={isFollowing}
-                        isChatEnabled={stream.isChatEnabled}
-                        isChatDelayed={stream.isChatDelayed}
-                        isChatFollowersOnly={
-                          stream.isChatFollowersOnly
-                        }
-                        pinnedMessage={pinned}
-                      />
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        )}
-      </LiveKitRoom>
-    </>
-  );
-}
-
-export default StreamPlayer;
-
-export const StreamPlayerSkeleton = () => {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 h-full">
-      <div className="space-y-4 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
-        <VideoSkeleton />
-        <HeaderSkeleton />
-      </div>
-      <div className="col-span-1 bg-background">
-        <ChatSkeleton />
-      </div>
-    </div>
-  );
-};
-
