@@ -89,7 +89,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
       >
         {/* VIDEO + INFO */}
         <div className="space-y-4 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
-          <Video hostname={user.username} hostIdentity={user.id} />
+          <Video hostname={user.username} hostIdentity={user.id} viewerIdentity={identity} />
 
           {goals.length > 0 && (
             <div className="px-4 space-y-4">
