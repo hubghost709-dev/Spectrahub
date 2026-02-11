@@ -26,19 +26,15 @@ function Video({ hostIdentity, hostname, viewerIdentity }: Props) {
     Track.Source.Microphone,
   ]).filter((track) => track.participant.identity === hostIdentity);
 
-  const isHostConnected = participant && tracks.length > 0;
+  const isHostConnected = !!(participant && tracks.length > 0);
   const isHost = `host-${hostIdentity}` === viewerIdentity;
 
   // Solo el host puede actualizar el estado isLive
   useEffect(() => {
-    if (!isHost) return; // Solo el dueño del stream puede actualizar
+    if (!isHost) return;
 
     if (connectionState === ConnectionState.Connected) {
-      if (isHostConnected) {
-        updateStreamLiveStatus(true).catch(console.error);
-      } else {
-        updateStreamLiveStatus(false).catch(console.error);
-      }
+      updateStreamLiveStatus(isHostConnected).catch(console.error);
     }
   }, [isHostConnected, connectionState, isHost]);
 
