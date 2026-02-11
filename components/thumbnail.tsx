@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LiveBadge } from "@/components/live-badge";
 import { UserAvatar } from "@/components/user-avatar";
 
 interface ThumbnailProps {
@@ -16,13 +15,9 @@ export const Thumbnail = ({
   isLive,
   username,
 }: ThumbnailProps) => {
-  // Debugging
-  console.log("🖼️ Thumbnail component:", { src, fallback, username });
-  
   let content;
-  
+
   if (!src) {
-    console.log("❌ No thumbnail URL, showing fallback for:", username);
     content = (
       <div className="bg-[#E60026] flex flex-col items-center justify-center gap-y-4 h-full w-full transition-transform group-hover:translate-x-2 group-hover:-translate-y-2 rounded-md">
         <UserAvatar
@@ -35,7 +30,6 @@ export const Thumbnail = ({
       </div>
     );
   } else {
-    console.log("✅ Showing thumbnail for:", username, "URL:", src);
     content = (
       <Image
         src={src}
@@ -45,14 +39,23 @@ export const Thumbnail = ({
       />
     );
   }
-  
+
   return (
     <div className="group aspect-video relative rounded-md cursor-pointer">
       <div className="rounded-md absolute inset-0 bg-[#FF3E96] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" />
       {content}
+
+      {/* ✅ Badge LIVE animado */}
       {isLive && (
         <div className="absolute top-2 left-2 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform">
-          <LiveBadge />
+          <div className="flex items-center gap-x-1 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+            {/* Punto rojo pulsante */}
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+            </span>
+            LIVE
+          </div>
         </div>
       )}
     </div>
