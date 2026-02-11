@@ -19,16 +19,16 @@ export const getStreams = async () => {
   try {
     const self = await getSelf();
     userId = self.id;
-  } catch {}
+  } catch {
+    userId = null;
+  }
 
   const filters: any[] = [];
 
   if (country) {
     filters.push({
       NOT: {
-        blockedCountries: {
-          has: country,
-        },
+        blockedCountries: { has: country },
       },
     });
   }
@@ -38,9 +38,7 @@ export const getStreams = async () => {
       user: {
         NOT: {
           blocking: {
-            some: {
-              blockedId: userId,
-            },
+            some: { blockedId: userId },
           },
         },
       },
