@@ -45,12 +45,13 @@ export const Thumbnail = ({
       <div className="rounded-md absolute inset-0 bg-[#FF3E96] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" />
       {content}
 
-      {/* Badge LIVE animado - solo cuando está en vivo */}
+      {/* Badge LIVE - siempre visible sobre la imagen */}
       {isLive && (
-        <div className="absolute top-2 left-2 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform z-10">
-          <div className="flex items-center gap-x-1.5 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+        <div className="absolute top-2 left-2 z-20 transition-transform group-hover:translate-x-2 group-hover:-translate-y-2">
+          <div className="flex items-center gap-x-1.5 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-lg border border-red-400">
+            {/* Punto pulsante */}
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
             </span>
             EN VIVO
