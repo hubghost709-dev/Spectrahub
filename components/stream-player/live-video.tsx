@@ -1,82 +1,81 @@
 "use client";
-
-import {Participant, Track} from "livekit-client";
-import {useTracks} from "@livekit/components-react";
-import {useEffect, useRef, useState} from "react";
-import FullScreenControl from "./full-screen-control";
-import {useEventListener} from "usehooks-ts";
-import VolumeControl from "./volume-control";
+import { useEffect, useRef, useCallback } from "react";
+import { RemoteParticipant } from "livekit-client";
+import { useUploadThing } from "@/lib/uploadthing";
+import { updateStream } from "@/actions/stream";
+import { ParticipantView } from "@livekit/components-react";
 
 type Props = {
-  participant: Participant;
+  participant: RemoteParticipant;
 };
 
-function LiveVideo({participant}: Props) {
+const CAPTURE_INTERVAL = 5 * 60 * 1000; // 5 minutos
+
+function LiveVideo({ participant }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [volume, setVolume] = useState(0);
+  const { startUpload } = useUploadThing("streamCapture", {
+    onClientUploadComplete: (res) => {
+      const url = res?.[0]?.url;
+      if (url) {
+        updateStream({ thumbnailUrl: url }).catch(console.error);
+      }
+    },
+  });
 
-  const onVolumeChange = (value: number) => {
-    setVolume(+value);
-    if (videoRef?.current) {
-      videoRef.current.muted = value === 0;
-      videoRef.current.volume = +value * 0.01;
+  const captureAndUpload = useCallback(async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    try {
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "stream-capture.jpg", {
+          type: "image/jpeg",
+        });
+        await startUpload([file]);
+      }, "image/jpeg", 0.8);
+    } catch (error) {
+      console.error("Error capturing stream:", error);
     }
-  };
-
-  const toggleMute = () => {
-    const isMuted = volume === 0;
-    setVolume(isMuted ? 50 : 0);
-    if (videoRef?.current) {
-      videoRef.current.muted = !isMuted;
-      videoRef.current.volume = isMuted ? 0.5 : 0;
-    }
-  };
+  }, [startUpload]);
 
   useEffect(() => {
-    onVolumeChange(0);
-  }, []);
+    // Primera captura al conectar (después de 10 segundos)
+    const initialCapture = setTimeout(() => {
+      captureAndUpload();
+    }, 10000);
 
-  const toggleFullScreen = () => {
-    if (isFullScreen) {
-      document.exitFullscreen();
-    } else if (wrapperRef?.current) {
-      wrapperRef.current.requestFullscreen();
-    }
-  };
+    // Capturas cada 5 minutos
+    const interval = setInterval(() => {
+      captureAndUpload();
+    }, CAPTURE_INTERVAL);
 
-  const handleFullScreenChange = () => {
-    const isCurrentlyFullScreen = document.fullscreenElement !== null;
-    setIsFullScreen(isCurrentlyFullScreen);
-  };
-
-  useEventListener("fullscreenchange", handleFullScreenChange, wrapperRef);
-  useTracks([Track.Source.Camera, Track.Source.Microphone])
-    .filter((track) => track.participant.identity === participant.identity)
-    .forEach((track) => {
-      if (videoRef?.current) {
-        track.publication.track?.attach(videoRef?.current);
-      }
-    });
+    return () => {
+      clearTimeout(initialCapture);
+      clearInterval(interval);
+    };
+  }, [captureAndUpload]);
 
   return (
-    <div className="relative h-full flex" ref={wrapperRef}>
-      <video width={"100%"} ref={videoRef} />
-      <div className="absolute top-0 h-full w-full opacity-0 hover:opacity-100 transition-all">
-        <div className="absolute bottom-0 flex h-14 w-full items-center justify-between bg-gradient-to-r from-neutral-900 px-4">
-          <VolumeControl
-            onChange={onVolumeChange}
-            value={volume}
-            onToggle={toggleMute}
-          />
-          <FullScreenControl
-            isFullScreen={isFullScreen}
-            onToggle={toggleFullScreen}
-          />
-        </div>
-      </div>
+    <div className="relative h-full w-full">
+      {/* Canvas oculto para capturar frames */}
+      <canvas ref={canvasRef} className="hidden" />
+
+      <ParticipantView
+        participant={participant}
+        className="h-full w-full object-cover"
+      />
     </div>
   );
 }
