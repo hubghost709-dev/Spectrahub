@@ -20,10 +20,10 @@ interface Stream {
   id: string;
   name: string;
   thumbnailUrl: string | null;
+  offlineThumbnailUrl: string | null; // ← agregado
   isLive: boolean;
   user: User;
 }
-
 // ✅ Export default aquí, solo una vez
 export default async function Results() {
   const t = await getTranslations();
