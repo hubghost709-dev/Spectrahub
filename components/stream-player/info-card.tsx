@@ -1,9 +1,8 @@
 "use client";
-
-import {PencilIcon} from "lucide-react";
-import {Separator} from "../ui/separator";
+import { PencilIcon } from "lucide-react";
+import { Separator } from "../ui/separator";
 import Image from "next/image";
-import {InfoModal} from "./info-modal";
+import { InfoModal } from "./info-modal";
 
 type Props = {
   name: string;
@@ -12,13 +11,14 @@ type Props = {
   viewerIdentity: string;
 };
 
-function InfoCard({name, thumbnailUrl, hostIdentity, viewerIdentity}: Props) {
+function InfoCard({ name, thumbnailUrl, hostIdentity, viewerIdentity }: Props) {
   const hostAsViewer = `host-${hostIdentity}`;
   const isHost = viewerIdentity === hostAsViewer;
 
   if (!isHost) {
     return null;
   }
+
   return (
     <div className="px-4">
       <div className="rounded-xl bg-background">
@@ -34,7 +34,6 @@ function InfoCard({name, thumbnailUrl, hostIdentity, viewerIdentity}: Props) {
               Maximize your visibility
             </p>
           </div>
-          {/* TODO ADD MODAL BUTTON */}
           <InfoModal initialName={name} initialThumbnailUrl={thumbnailUrl} />
         </div>
         <Separator />
@@ -44,7 +43,7 @@ function InfoCard({name, thumbnailUrl, hostIdentity, viewerIdentity}: Props) {
             <p className="text-sm font-semibold">{name}</p>
           </div>
           <div>
-            <h3 className="text-sm text-muted-foreground mb-2">Thumbnail</h3>
+            <h3 className="text-sm text-muted-foreground mb-2">Offline Thumbnail</h3>
             {thumbnailUrl && (
               <div className="aspect-video relative rounded-md overflow-hidden w-[200px] border-white/10 border">
                 <Image
@@ -54,7 +53,7 @@ function InfoCard({name, thumbnailUrl, hostIdentity, viewerIdentity}: Props) {
                   className="object-cover"
                 />
               </div>
-            )}{" "}
+            )}
           </div>
         </div>
       </div>
