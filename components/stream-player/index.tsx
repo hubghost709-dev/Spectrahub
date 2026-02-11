@@ -117,11 +117,11 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
             username={user.username}
             isVerifiedModel={user.isVerifiedModel}
           />
-          <InfoCard
-            hostIdentity={user.id}
-            viewerIdentity={identity}
-            name={stream.name}
-            thumbnailUrl={stream.thumbnailUrl}
+        <InfoCard
+           hostIdentity={user.id}
+           viewerIdentity={identity}
+           name={stream.name}
+           thumbnailUrl={stream.offlineThumbnailUrl}
           />
           <AboutCard
             hostName={user.username}
