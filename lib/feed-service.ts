@@ -23,23 +23,23 @@ export const getStreams = async () => {
     userId = null;
   }
 
-  const streams = await db.stream.findMany({
-    where: {
-      AND: [
-        {
-          NOT: {
-            blockedCountries: {
-              has: country || "",
-            },
+const streams = await db.stream.findMany({
+  where: {
+    AND: [
+      {
+        NOT: {
+          blockedCountries: {
+            has: country || "",
           },
         },
-        userId
-          ? {
-              user: {
-                NOT: {
-                  blocking: {
-                    some: {
-                      blockedId: userId,
+      },
+      userId
+        ? {
+            user: {
+              NOT: {
+                blocking: {
+                  some: {
+                    blockedId: userId,
                     },
                   },
                 },
@@ -52,6 +52,7 @@ export const getStreams = async () => {
       id: true,
       name: true,
       thumbnailUrl: true,
+      offlineThumbnailUrl: true, // ✅ Nuevo
       isLive: true,
       updatedAt: true,
       user: {
