@@ -13,7 +13,7 @@ const getCountry = (): string | null => {
 };
 
 export const getStreams = async () => {
-  let userId: string | null = null;
+  let userId;
   const country = getCountry();
 
   try {
@@ -23,30 +23,31 @@ export const getStreams = async () => {
     userId = null;
   }
 
-  const filters: any[] = [];
-
-  if (country) {
-    filters.push({
-      NOT: {
-        blockedCountries: { has: country },
-      },
-    });
-  }
-
-  if (userId) {
-    filters.push({
-      user: {
-        NOT: {
-          blocking: {
-            some: { blockedId: userId },
+  const streams = await db.stream.findMany({
+    where: {
+      AND: [
+        {
+          NOT: {
+            blockedCountries: {
+              has: country || "",
+            },
           },
         },
-      },
-    });
-  }
-
-  const streams = await db.stream.findMany({
-    where: filters.length ? { AND: filters } : undefined,
+        userId
+          ? {
+              user: {
+                NOT: {
+                  blocking: {
+                    some: {
+                      blockedId: userId,
+                    },
+                  },
+                },
+              },
+            }
+          : {},
+      ],
+    },
     select: {
       id: true,
       name: true,
@@ -69,8 +70,12 @@ export const getStreams = async () => {
       },
     },
     orderBy: [
-      { isLive: "desc" },
-      { updatedAt: "desc" },
+      {
+        isLive: "desc",
+      },
+      {
+        updatedAt: "desc",
+      },
     ],
   });
 
