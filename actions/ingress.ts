@@ -100,7 +100,11 @@ export const updateStreamLiveStatus = async (isLive: boolean) => {
 
     const updatedStream = await db.stream.update({
       where: { id: stream.id },
-      data: { isLive },
+      data: { 
+        isLive,
+        // ✅ Limpia thumbnailUrl cuando termina el stream
+        ...(isLive === false && { thumbnailUrl: null })
+      },
     });
 
     revalidatePath(`/${self.username}`);
