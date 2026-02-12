@@ -39,17 +39,6 @@ export type CustomUser = {
   _count: { follower: number };
 };
 
-type Goal = {
-  id: string;
-  name: string;
-  targetAmount: number;
-  currentAmount: number;
-  theme: string;
-  color: string;
-  isActive: boolean;
-  isCompleted: boolean;
-};
-
 type Props = {
   user: CustomUser;
   stream: CustomStream;
@@ -59,30 +48,17 @@ type Props = {
 function StreamPlayer({ user, stream, isFollowing }: Props) {
   const { token, name, identity } = useViewerToken(user.id);
   const { collapsed } = useChatSidebar((state) => state);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const isMobile = useMediaQuery("(max-width: 1024px)", {
-    initializeWithValue: false,
-  });
+  const [goals, setGoals] = useState<any[]>([]);
+  const isMobile = useMediaQuery("(max-width: 1024px)");
   const [chatOpen, setChatOpen] = useState(false);
 
-  const serverUrl = process.env.NEXT_PUBLIC_LIVEKIT_WS_URL;
-
   useEffect(() => {
-    let active = true;
-
     const fetchGoals = async () => {
       try {
-        const response = await fetch(
-          `/api/goals?username=${encodeURIComponent(user.username)}`
-        );
-
+        const response = await fetch(`/api/goals?username=${user.username}`);
         if (!response.ok) throw new Error("Failed to fetch goals");
-
-        const data: Goal[] = await response.json();
-
-        if (!active) return;
-
-        setGoals(data.filter((goal) => goal.isActive && !goal.isCompleted));
+        const data = await response.json();
+        setGoals(data.filter((goal: any) => goal.isActive && !goal.isCompleted));
       } catch (error) {
         console.error("Error fetching goals:", error);
       }
@@ -90,18 +66,12 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
 
     fetchGoals();
     const interval = setInterval(fetchGoals, 30000);
-
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [user.username]);
 
-  if (!serverUrl || !token || !name || !identity) {
+  if (!token || !name || !identity) {
     return <StreamPlayerSkeleton />;
   }
-
-  const pinned = stream.pinnedMessage || stream.streamTopic || "";
 
   return (
     <>
@@ -110,22 +80,16 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
           <ChatToggle />
         </div>
       )}
-
       <LiveKitRoom
         token={token}
-        serverUrl={serverUrl}
+        serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_WS_URL}
         className={cn(
           "grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 h-full",
           collapsed && "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2"
         )}
       >
-        {/* VIDEO + INFO */}
         <div className="space-y-4 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
-          <Video
-            hostname={user.username}
-            hostIdentity={user.id}
-            viewerIdentity={identity}
-          />
+          <Video hostname={user.username} hostIdentity={user.id} viewerIdentity={identity} />
 
           {goals.length > 0 && (
             <div className="px-4 space-y-4">
@@ -153,14 +117,12 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
             username={user.username}
             isVerifiedModel={user.isVerifiedModel}
           />
-
           <InfoCard
             hostIdentity={user.id}
             viewerIdentity={identity}
             name={stream.name}
             thumbnailUrl={stream.offlineThumbnailUrl}
           />
-
           <AboutCard
             hostName={user.username}
             hostIdentity={user.id}
@@ -170,7 +132,6 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
           />
         </div>
 
-        {/* DESKTOP CHAT */}
         {!isMobile && (
           <div className={cn("col-span-1", collapsed && "hidden")}>
             <Chat
@@ -181,57 +142,52 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
               isChatEnabled={stream.isChatEnabled}
               isChatDelayed={stream.isChatDelayed}
               isChatFollowersOnly={stream.isChatFollowersOnly}
-              pinnedMessage={pinned}
+              pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
             />
           </div>
         )}
 
-        {/* MOBILE CHAT */}
         {isMobile && (
           <>
             <button
-              onClick={() => setChatOpen(true)}
+              onClick={() => setChatOpen(!chatOpen)}
               className="fixed bottom-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full shadow-lg z-50"
             >
               Chat
             </button>
 
             <AnimatePresence>
-              {chatOpen && (
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: chatOpen ? 0 : "100%" }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="fixed inset-0 bg-black/60 flex justify-center items-end z-50"
+                style={{ pointerEvents: chatOpen ? "auto" : "none" }}
+              >
                 <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="fixed inset-0 bg-black/60 flex justify-center items-end z-50"
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: chatOpen ? 0 : 100, opacity: chatOpen ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="w-full h-[70vh] bg-[#1e1e1e] rounded-t-2xl p-4 flex flex-col"
                 >
-                  <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="w-full h-[70vh] bg-[#1e1e1e] rounded-t-2xl p-4 flex flex-col"
-                  >
-                    <div className="flex justify-between items-center text-white mb-2">
-                      <h2 className="text-lg font-semibold">Chat</h2>
-                      <button onClick={() => setChatOpen(false)}>✖</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                      <Chat
-                        viewerName={name}
-                        hostName={user.username}
-                        hostIdentity={user.id}
-                        isFollowing={isFollowing}
-                        isChatEnabled={stream.isChatEnabled}
-                        isChatDelayed={stream.isChatDelayed}
-                        isChatFollowersOnly={stream.isChatFollowersOnly}
-                        pinnedMessage={pinned}
-                      />
-                    </div>
-                  </motion.div>
+                  <div className="flex justify-between items-center text-white mb-2">
+                    <h2 className="text-lg font-semibold">Chat</h2>
+                    <button onClick={() => setChatOpen(false)}>✖</button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <Chat
+                      viewerName={name}
+                      hostName={user.username}
+                      hostIdentity={user.id}
+                      isFollowing={isFollowing}
+                      isChatEnabled={stream.isChatEnabled}
+                      isChatDelayed={stream.isChatDelayed}
+                      isChatFollowersOnly={stream.isChatFollowersOnly}
+                      pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+                    />
+                  </div>
                 </motion.div>
-              )}
+              </motion.div>
             </AnimatePresence>
           </>
         )}
