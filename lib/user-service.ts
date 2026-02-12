@@ -14,7 +14,7 @@ const getCountry = (): string | null => {
 
 export const getUserByUsername = async (username: string) => {
   const country = getCountry();
-
+  
   if (!username) {
     return null;
   }
@@ -32,6 +32,7 @@ export const getUserByUsername = async (username: string) => {
           isChatEnabled: true,
           isChatFollowersOnly: true,
           thumbnailUrl: true,
+          offlineThumbnailUrl: true, // ✅ AGREGADO
           name: true,
           pinnedMessage: true,
           streamTopic: true,
@@ -46,7 +47,6 @@ export const getUserByUsername = async (username: string) => {
     }
   });
 
-  // If user has blocked the current country, return null
   if (user?.stream?.blockedCountries?.includes(country || "")) {
     return null;
   }
@@ -56,7 +56,7 @@ export const getUserByUsername = async (username: string) => {
 
 export const getUserById = async (id: string) => {
   const country = getCountry();
-
+  
   if (!id) {
     return null;
   }
@@ -74,6 +74,7 @@ export const getUserById = async (id: string) => {
           isChatEnabled: true,
           isChatFollowersOnly: true,
           thumbnailUrl: true,
+          offlineThumbnailUrl: true, // ✅ AGREGADO
           name: true,
           pinnedMessage: true,
           streamTopic: true,
@@ -88,7 +89,6 @@ export const getUserById = async (id: string) => {
     }
   });
 
-  // If user has blocked the current country, return null
   if (user?.stream?.blockedCountries?.includes(country || "")) {
     return null;
   }
@@ -98,7 +98,7 @@ export const getUserById = async (id: string) => {
 
 export const getSelfByUsername = async (username: string) => {
   const self = await currentUser();
-
+  
   if (!self || !self.username) {
     throw new Error("Unauthorized");
   }
