@@ -42,7 +42,8 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
       const uploadedUrl = res?.[0]?.url;
       if (uploadedUrl) {
         startTransition(() => {
-          updateStream({ thumbnailUrl: uploadedUrl })
+          // ✅ CORREGIDO: Guarda en offlineThumbnailUrl
+          updateStream({ offlineThumbnailUrl: uploadedUrl })
             .then(() => {
               setThumbnailUrl(uploadedUrl);
               toast.success("Thumbnail uploaded!");
@@ -85,7 +86,8 @@ export const InfoModal = ({ initialName, initialThumbnailUrl }: Props) => {
 
   const onRemoveThumbnail = () => {
     startTransition(() => {
-      updateStream({ thumbnailUrl: null })
+      // ✅ CORREGIDO: Elimina offlineThumbnailUrl
+      updateStream({ offlineThumbnailUrl: null })
         .then(() => {
           toast.success("Thumbnail removed");
           setThumbnailUrl(null);
