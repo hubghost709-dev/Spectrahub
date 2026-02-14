@@ -102,10 +102,19 @@ export const updateStreamLiveStatus = async (isLive: boolean) => {
       where: { id: stream.id },
       data: { 
         isLive,
-        // ✅ Limpia thumbnailUrl cuando termina el stream
         ...(isLive === false && { thumbnailUrl: null })
       },
     });
+
+    // ✅ Limpiar mensajes del chat cuando termina la transmisión
+    if (isLive === false) {
+      await db.chatMessage.deleteMany({
+        where: {
+          streamId: stream.id,
+        },
+      });
+      console.log(`[STREAM_END] Cleared chat messages for stream ${stream.id}`);
+    }
 
     revalidatePath(`/${self.username}`);
     revalidatePath(`/u/${self.username}`);
