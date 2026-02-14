@@ -79,7 +79,6 @@ async function CreatorPage({ params }: Props) {
                 "name": `${user.username} Live Stream`,
                 "description": user.stream.name,
                 "thumbnailUrl": user.stream.thumbnailUrl || user.imageUrl,
-                "uploadDate": user.stream.updatedAt,
                 "contentUrl": `https://spectrahub.cloud/u/${user.username}`,
                 "publication": {
                   "@type": "BroadcastEvent",
