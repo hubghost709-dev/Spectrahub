@@ -5,6 +5,7 @@ import {
   useConnectionState,
   useRemoteParticipant,
 } from "@livekit/components-react";
+import type { ReceivedChatMessage } from "@livekit/components-react";
 import { ConnectionState } from "livekit-client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
@@ -23,7 +24,7 @@ type Props = {
   isChatDelayed: boolean;
   isChatFollowersOnly: boolean;
   pinnedMessage: string;
-  streamId: string; // ✅ Agregar streamId
+  streamId: string;
 };
 
 interface PersistedMessage {
@@ -42,7 +43,7 @@ function Chat({
   isFollowing,
   hostName,
   pinnedMessage,
-  streamId, // ✅ Recibir streamId
+  streamId,
 }: Props) {
   const matches = useMediaQuery("(max-width: 1024px)");
   const { variant, onExpand } = useChatSidebar((state) => state);
@@ -53,11 +54,10 @@ function Chat({
   const [value, setValue] = useState("");
   const { chatMessages: liveMessages, send } = useChat();
   
-  // ✅ Estado para mensajes persistidos
   const [persistedMessages, setPersistedMessages] = useState<PersistedMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  // ✅ Cargar historial de mensajes al montar
+  // Cargar historial de mensajes
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
@@ -78,13 +78,12 @@ function Chat({
     }
   }, [streamId]);
 
-  // ✅ Guardar mensajes nuevos en la BD
+  // Guardar mensajes nuevos en la BD
   useEffect(() => {
     if (liveMessages.length === 0) return;
 
     const lastMessage = liveMessages[liveMessages.length - 1];
     
-    // Guardar en BD
     const saveMessage = async () => {
       try {
         await fetch("/api/chat/messages", {
@@ -113,16 +112,15 @@ function Chat({
     }
   }, [matches, onExpand]);
 
-  // ✅ Combinar mensajes persistidos con mensajes en vivo
+  // ✅ Combinar mensajes - convertir persistidos al formato ReceivedChatMessage
   const allMessages = useMemo(() => {
-    // Convertir mensajes persistidos al formato de LiveKit
-    const historicalMessages = persistedMessages.map((msg) => ({
+    const historicalMessages: ReceivedChatMessage[] = persistedMessages.map((msg) => ({
       timestamp: new Date(msg.createdAt).getTime(),
       message: msg.content,
       from: {
         name: msg.username,
         identity: msg.username,
-      },
+      } as any, // Cast para compatibilidad con ReceivedChatMessage
     }));
 
     // Combinar y ordenar
