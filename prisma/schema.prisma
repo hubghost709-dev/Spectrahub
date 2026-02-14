@@ -35,7 +35,7 @@ model Stream {
   id                  String      @id @default(uuid())
   name                String
   thumbnailUrl        String?
-  offlineThumbnailUrl String?     
+  offlineThumbnailUrl String?
   ingressId           String?     @unique
   serverUrl           String?
   streamKey           String?
@@ -53,9 +53,24 @@ model Stream {
   kingOfRoom          KingOfRoom?
   user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   tips                Tip[]
+  chatMessages        ChatMessage[] // ✅ Nueva relación
 
   @@index([userId])
   @@index([ingressId])
+}  
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  content   String
+  username  String
+  userId    String?
+  streamId  String
+  createdAt DateTime @default(now())
+  
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  
+  @@index([streamId])
+  @@index([createdAt])
 }
 
 model Tip {
