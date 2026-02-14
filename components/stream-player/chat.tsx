@@ -1,5 +1,4 @@
 "use client";
-
 import { ChatVariant, useChatSidebar } from "@/store/use-chat-sidebar";
 import {
   useChat,
@@ -10,7 +9,6 @@ import { ConnectionState } from "livekit-client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { motion } from "framer-motion";
-
 import ChatHeader, { ChatHeaderSkeleton } from "./chat-header";
 import ChatForm, { ChatFormSkeleton } from "./chat-form";
 import ChatList, { ChatListSkeleton } from "./chat-list";
@@ -25,7 +23,15 @@ type Props = {
   isChatDelayed: boolean;
   isChatFollowersOnly: boolean;
   pinnedMessage: string;
+  streamId: string; // ✅ Agregar streamId
 };
+
+interface PersistedMessage {
+  id: string;
+  content: string;
+  username: string;
+  createdAt: string;
+}
 
 function Chat({
   hostIdentity,
@@ -36,17 +42,70 @@ function Chat({
   isFollowing,
   hostName,
   pinnedMessage,
+  streamId, // ✅ Recibir streamId
 }: Props) {
   const matches = useMediaQuery("(max-width: 1024px)");
   const { variant, onExpand } = useChatSidebar((state) => state);
   const connectionState = useConnectionState();
   const participant = useRemoteParticipant(hostIdentity);
-
   const isOnline = participant && connectionState === ConnectionState.Connected;
   const isHidden = !isChatEnabled || !isOnline;
-
   const [value, setValue] = useState("");
-  const { chatMessages: messages, send } = useChat();
+  const { chatMessages: liveMessages, send } = useChat();
+  
+  // ✅ Estado para mensajes persistidos
+  const [persistedMessages, setPersistedMessages] = useState<PersistedMessage[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  // ✅ Cargar historial de mensajes al montar
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const response = await fetch(`/api/chat/messages?streamId=${streamId}&limit=100`);
+        if (response.ok) {
+          const messages = await response.json();
+          setPersistedMessages(messages);
+        }
+      } catch (error) {
+        console.error("Error loading chat history:", error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    if (streamId) {
+      loadChatHistory();
+    }
+  }, [streamId]);
+
+  // ✅ Guardar mensajes nuevos en la BD
+  useEffect(() => {
+    if (liveMessages.length === 0) return;
+
+    const lastMessage = liveMessages[liveMessages.length - 1];
+    
+    // Guardar en BD
+    const saveMessage = async () => {
+      try {
+        await fetch("/api/chat/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            streamId,
+            content: lastMessage.message,
+            username: lastMessage.from?.name || "Anonymous",
+            userId: lastMessage.from?.identity,
+          }),
+        });
+      } catch (error) {
+        console.error("Error saving message:", error);
+      }
+    };
+
+    saveMessage();
+  }, [liveMessages, streamId]);
 
   useEffect(() => {
     if (matches) {
@@ -54,9 +113,22 @@ function Chat({
     }
   }, [matches, onExpand]);
 
-  const reversedMessages = useMemo(() => {
-    return messages.sort((a, b) => b.timestamp - a.timestamp);
-  }, [messages]);
+  // ✅ Combinar mensajes persistidos con mensajes en vivo
+  const allMessages = useMemo(() => {
+    // Convertir mensajes persistidos al formato de LiveKit
+    const historicalMessages = persistedMessages.map((msg) => ({
+      timestamp: new Date(msg.createdAt).getTime(),
+      message: msg.content,
+      from: {
+        name: msg.username,
+        identity: msg.username,
+      },
+    }));
+
+    // Combinar y ordenar
+    const combined = [...historicalMessages, ...liveMessages];
+    return combined.sort((a, b) => b.timestamp - a.timestamp);
+  }, [persistedMessages, liveMessages]);
 
   const onSubmit = () => {
     if (!send) return;
@@ -68,18 +140,20 @@ function Chat({
     setValue(value);
   };
 
+  if (isLoadingHistory) {
+    return <ChatSkeleton />;
+  }
+
   return (
     <div className="flex flex-col bg-[#333131] h-full">
       <ChatHeader />
       {variant === ChatVariant.CHAT && (
         <>
           <ChatList
-            messages={reversedMessages}
+            messages={allMessages}
             isHidden={isHidden}
             pinnedMessage={pinnedMessage}
           />
-
-          {/* Input normal en desktop */}
           {!matches && (
             <ChatForm
               onSubmit={onSubmit}
@@ -91,8 +165,6 @@ function Chat({
               isFollowing={isFollowing}
             />
           )}
-
-          {/* Input flotante con animación en móvil */}
           {matches && (
             <motion.div
               initial={{ y: 80, opacity: 0 }}
