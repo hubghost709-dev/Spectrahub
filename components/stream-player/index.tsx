@@ -1,6 +1,7 @@
 "use client";
 
 import { useViewerToken } from "@/hooks/use-viewer-token";
+import { useLovense } from "@/hooks/use-lovense";
 import { LiveKitRoom } from "@livekit/components-react";
 import { cn } from "@/lib/utils";
 import { useChatSidebar } from "@/store/use-chat-sidebar";
@@ -11,6 +12,7 @@ import Header, { HeaderSkeleton } from "./header";
 import InfoCard from "./info-card";
 import AboutCard from "./about-card";
 import { GoalProgress } from "./token-goals/goal-progress";
+import { LovenseStatus } from "@/components/lovense-status";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { AnimatePresence, motion } from "framer-motion";
@@ -52,6 +54,9 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const [chatOpen, setChatOpen] = useState(false);
 
+  // ✅ Lovense integration
+  const { isReady: lovenseReady, toys, sendTip } = useLovense("SpectraHub", user.username);
+
   useEffect(() => {
     const fetchGoals = async () => {
       try {
@@ -90,6 +95,13 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
       >
         <div className="space-y-4 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
           <Video hostname={user.username} hostIdentity={user.id} viewerIdentity={identity} />
+
+          {/* ✅ Lovense Status */}
+          {stream.isLive && toys.length > 0 && (
+            <div className="px-4">
+              <LovenseStatus toys={toys} />
+            </div>
+          )}
 
           {goals.length > 0 && (
             <div className="px-4 space-y-4">
@@ -143,6 +155,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
               isChatDelayed={stream.isChatDelayed}
               isChatFollowersOnly={stream.isChatFollowersOnly}
               pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+              onTipSent={lovenseReady ? sendTip : undefined} // ✅ Pass Lovense callback
             />
           </div>
         )}
@@ -184,6 +197,7 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
                       isChatDelayed={stream.isChatDelayed}
                       isChatFollowersOnly={stream.isChatFollowersOnly}
                       pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+                      onTipSent={lovenseReady ? sendTip : undefined} // ✅ Pass Lovense callback
                     />
                   </div>
                 </motion.div>
