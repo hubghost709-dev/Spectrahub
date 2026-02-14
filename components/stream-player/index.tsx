@@ -141,20 +141,21 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
           />
         </div>
 
-        {!isMobile && (
-          <div className={cn("col-span-1", collapsed && "hidden")}>
-            <Chat
-            streamId={stream.id}  
-            viewerName={name}
-            hostName={user.username}
-            hostIdentity={user.id}
-            isFollowing={isFollowing}
-            isChatEnabled={stream.isChatEnabled}
-            isChatDelayed={stream.isChatDelayed}
-            isChatFollowersOnly={stream.isChatFollowersOnly}
-            pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
-          />
-          </div>
+       {!isMobile && (
+  <div className={cn("col-span-1", collapsed && "hidden")}>
+    <Chat
+      viewerName={name}
+      viewerIdentity={identity} // ✅ Agregar
+      hostName={user.username}
+      hostIdentity={user.id}
+      isFollowing={isFollowing}
+      isChatEnabled={stream.isChatEnabled}
+      isChatDelayed={stream.isChatDelayed}
+      isChatFollowersOnly={stream.isChatFollowersOnly}
+      pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+      streamId={stream.id}
+    />
+  </div>
         )}
 
         {isMobile && (
