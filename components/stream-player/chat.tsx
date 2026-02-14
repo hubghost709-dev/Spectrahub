@@ -1,4 +1,5 @@
 "use client";
+
 import { ChatVariant, useChatSidebar } from "@/store/use-chat-sidebar";
 import {
   useChat,
@@ -52,8 +53,9 @@ function Chat({
   const connectionState = useConnectionState();
   const participant = useRemoteParticipant(hostIdentity);
 
+  // ✅ Boolean real
   const isOnline =
-    participant && connectionState === ConnectionState.Connected;
+    !!participant && connectionState === ConnectionState.Connected;
 
   const isHidden = !isChatEnabled || !isOnline;
 
@@ -65,16 +67,17 @@ function Chat({
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  // ✅ NUEVO: detectar si el viewer es el host
+  // ✅ Detectar si el viewer es el host
   const isHost = `host-${hostIdentity}` === viewerIdentity;
 
-  // Cargar historial de mensajes
+  // Cargar historial
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
         const response = await fetch(
           `/api/chat/messages?streamId=${streamId}&limit=100`
         );
+
         if (response.ok) {
           const messages = await response.json();
           setPersistedMessages(messages);
@@ -91,11 +94,12 @@ function Chat({
     }
   }, [streamId]);
 
-  // Guardar mensajes nuevos en la BD
+  // Guardar nuevos mensajes
   useEffect(() => {
     if (liveMessages.length === 0) return;
 
     const lastMessage = liveMessages[liveMessages.length - 1];
+    if (!lastMessage) return;
 
     const saveMessage = async () => {
       try {
@@ -158,7 +162,6 @@ function Chat({
 
   return (
     <div className="flex flex-col bg-[#333131] h-full">
-      {/* ✅ Pasamos isHost al header */}
       <ChatHeader isHost={isHost} />
 
       {variant === ChatVariant.CHAT && (
@@ -187,3 +190,41 @@ function Chat({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 80, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
+              className="chat-input-mobile"
+            >
+              <ChatForm
+                onSubmit={onSubmit}
+                value={value}
+                onChange={onChange}
+                isHidden={isHidden}
+                isFollowersOnly={isChatFollowersOnly}
+                isDelayed={isChatDelayed}
+                isFollowing={isFollowing}
+              />
+            </motion.div>
+          )}
+        </>
+      )}
+
+      {variant === ChatVariant.COMMUNITY && (
+        <ChatCommunity
+          viewerName={viewerName}
+          hostName={hostName}
+          isHidden={isHidden}
+        />
+      )}
+    </div>
+  );
+}
+
+export default Chat;
+
+export const ChatSkeleton = () => {
+  return (
+    <div className="flex flex-col border-l border-b pt-0 h-[calc(100vh-80px)] border-2">
+      <ChatHeaderSkeleton />
+      <ChatListSkeleton />
+      <ChatFormSkeleton />
+    </div>
+  );
+};
