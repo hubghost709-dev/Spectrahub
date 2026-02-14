@@ -19,65 +19,63 @@ body,
 
 @layer base {
   :root {
-    --background: 344 33% 9%;
+    /* Fondo principal - Degradado oscuro con tonos púrpura/azul */
+    --background: 250 30% 8%;
     --foreground: 210 40% 98%;
-
-    --card: 344 33% 9%;
+    
+    /* Cards con efecto glassmorphism */
+    --card: 250 20% 12%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 344 33% 9%;
+    
+    --popover: 250 20% 12%;
     --popover-foreground: 210 40% 98%;
-
+    
+    /* Primary - Rojo/Rosa vibrante */
     --primary: 348 100% 50%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 0 0% 19%;
+    
+    /* Secondary - Púrpura eléctrico */
+    --secondary: 280 70% 50%;
     --secondary-foreground: 210 40% 98%;
-
-    --muted: 0 0% 19%;
-    --muted-foreground: 215 16% 57%;
-
-    --accent: 0 0% 19%;
-    --accent-foreground: 210 40% 98%;
-
+    
+    /* Muted - Gris azulado */
+    --muted: 240 15% 20%;
+    --muted-foreground: 240 10% 65%;
+    
+    /* Accent - Cian brillante */
+    --accent: 190 90% 50%;
+    --accent-foreground: 250 30% 8%;
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 0 0% 19%;
-    --input: 0 0% 19%;
-    --ring: 0 0% 19%;
-
-    --radius: 0.5rem;
+    
+    /* Bordes sutiles */
+    --border: 240 20% 18%;
+    --input: 240 20% 15%;
+    --ring: 348 100% 50%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 344 33% 9%;
+    --background: 250 30% 8%;
     --foreground: 210 40% 98%;
-
-    --card: 344 33% 9%;
+    --card: 250 20% 12%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 344 33% 9%;
+    --popover: 250 20% 12%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 348 100% 50%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 0 0% 19%;
+    --secondary: 280 70% 50%;
     --secondary-foreground: 210 40% 98%;
-
-    --muted: 0 0% 19%;
-    --muted-foreground: 215 16% 57%;
-
-    --accent: 0 0% 19%;
-    --accent-foreground: 210 40% 98%;
-
+    --muted: 240 15% 20%;
+    --muted-foreground: 240 10% 65%;
+    --accent: 190 90% 50%;
+    --accent-foreground: 250 30% 8%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 0 0% 19%;
-    --input: 0 0% 19%;
-    --ring: 0 0% 19%;
+    --border: 240 20% 18%;
+    --input: 240 20% 15%;
+    --ring: 348 100% 50%;
   }
 }
 
@@ -85,27 +83,170 @@ body,
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    /* Gradiente animado de fondo */
+    background: linear-gradient(135deg, 
+      hsl(250, 30%, 8%) 0%,
+      hsl(260, 35%, 10%) 25%,
+      hsl(270, 30%, 12%) 50%,
+      hsl(280, 35%, 10%) 75%,
+      hsl(250, 30%, 8%) 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
   }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Custom styles for SpectraHub */
 .nav-blur {
-  background: rgba(230, 0, 38, 0.5);
+  background: rgba(230, 0, 38, 0.95);
   backdrop-filter: blur(10px);
+  box-shadow: 0 4px 30px rgba(230, 0, 38, 0.2);
 }
 
 .sidebar-gradient {
-  background: linear-gradient(to bottom, rgba(51, 49, 49, 0.8), rgba(51, 49, 49, 0.95));
+  background: linear-gradient(180deg, 
+    rgba(20, 15, 35, 0.95) 0%,
+    rgba(30, 20, 45, 0.98) 50%,
+    rgba(25, 18, 40, 0.95) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(190, 90, 250, 0.1);
 }
 
 .stream-card {
-  background: rgba(51, 49, 49, 0.6);
-  transition: all 0.2s ease-in-out;
+  background: linear-gradient(135deg,
+    rgba(40, 30, 60, 0.6) 0%,
+    rgba(50, 35, 70, 0.7) 100%
+  );
+  border: 1px solid rgba(190, 90, 250, 0.15);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .stream-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: linear-gradient(135deg,
+    rgba(60, 40, 85, 0.8) 0%,
+    rgba(70, 50, 100, 0.9) 100%
+  );
+  border-color: rgba(255, 60, 150, 0.4);
+  box-shadow: 
+    0 8px 30px rgba(255, 60, 150, 0.3),
+    0 0 40px rgba(190, 90, 250, 0.2);
+}
+
+/* Efecto de brillo en cards */
+.stream-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.stream-card:hover::before {
+  left: 100%;
+}
+
+/* Botones mejorados */
+.btn-primary {
+  background: linear-gradient(135deg, #E60026 0%, #FF3C96 100%);
+  box-shadow: 0 4px 15px rgba(230, 0, 38, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 25px rgba(230, 0, 38, 0.6);
   transform: translateY(-2px);
-  background: rgba(51, 49, 49, 0.8);
+}
+
+/* Input con brillo */
+input:focus,
+textarea:focus {
+  border-color: rgba(255, 60, 150, 0.5);
+  box-shadow: 0 0 20px rgba(255, 60, 150, 0.3);
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 20, 45, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #E60026 0%, #BE5AFA 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FF3C96 0%, #D070FF 100%);
+}
+
+/* Badge LIVE mejorado */
+.live-badge {
+  background: linear-gradient(135deg, #E60026 0%, #FF1744 100%);
+  box-shadow: 
+    0 0 20px rgba(230, 0, 38, 0.6),
+    0 0 40px rgba(230, 0, 38, 0.3);
+  animation: pulseLive 2s ease-in-out infinite;
+}
+
+@keyframes pulseLive {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(230, 0, 38, 0.6),
+      0 0 40px rgba(230, 0, 38, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(230, 0, 38, 0.8),
+      0 0 60px rgba(230, 0, 38, 0.5);
+  }
+}
+
+/* Efectos de texto con gradiente */
+.gradient-text {
+  background: linear-gradient(135deg, #FF3C96 0%, #BE5AFA 50%, #00E5FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Chat mejorado */
+.chat-container {
+  background: linear-gradient(180deg,
+    rgba(25, 18, 40, 0.95) 0%,
+    rgba(30, 22, 50, 0.98) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(190, 90, 250, 0.2);
+}
+
+/* Offline video mejorado */
+.offline-container {
+  background: linear-gradient(135deg,
+    rgba(40, 30, 60, 0.9) 0%,
+    rgba(30, 20, 50, 0.95) 100%
+  );
+  backdrop-filter: blur(10px);
 }
