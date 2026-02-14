@@ -19,6 +19,7 @@ type Props = {
   hostName: string;
   hostIdentity: string;
   viewerName: string;
+  viewerIdentity: string;
   isFollowing: boolean;
   isChatEnabled: boolean;
   isChatDelayed: boolean;
@@ -37,6 +38,7 @@ interface PersistedMessage {
 function Chat({
   hostIdentity,
   viewerName,
+  viewerIdentity,
   isChatDelayed,
   isChatEnabled,
   isChatFollowersOnly,
@@ -49,19 +51,30 @@ function Chat({
   const { variant, onExpand } = useChatSidebar((state) => state);
   const connectionState = useConnectionState();
   const participant = useRemoteParticipant(hostIdentity);
-  const isOnline = participant && connectionState === ConnectionState.Connected;
+
+  const isOnline =
+    participant && connectionState === ConnectionState.Connected;
+
   const isHidden = !isChatEnabled || !isOnline;
+
   const [value, setValue] = useState("");
   const { chatMessages: liveMessages, send } = useChat();
-  
-  const [persistedMessages, setPersistedMessages] = useState<PersistedMessage[]>([]);
+
+  const [persistedMessages, setPersistedMessages] = useState<
+    PersistedMessage[]
+  >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  // ✅ NUEVO: detectar si el viewer es el host
+  const isHost = `host-${hostIdentity}` === viewerIdentity;
 
   // Cargar historial de mensajes
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
-        const response = await fetch(`/api/chat/messages?streamId=${streamId}&limit=100`);
+        const response = await fetch(
+          `/api/chat/messages?streamId=${streamId}&limit=100`
+        );
         if (response.ok) {
           const messages = await response.json();
           setPersistedMessages(messages);
@@ -83,7 +96,7 @@ function Chat({
     if (liveMessages.length === 0) return;
 
     const lastMessage = liveMessages[liveMessages.length - 1];
-    
+
     const saveMessage = async () => {
       try {
         await fetch("/api/chat/messages", {
@@ -112,24 +125,25 @@ function Chat({
     }
   }, [matches, onExpand]);
 
-  // ✅ Combinar mensajes - convertir persistidos al formato ReceivedChatMessage
+  // Combinar mensajes históricos + live
   const allMessages = useMemo(() => {
-    const historicalMessages: ReceivedChatMessage[] = persistedMessages.map((msg) => ({
-      timestamp: new Date(msg.createdAt).getTime(),
-      message: msg.content,
-      from: {
-        name: msg.username,
-        identity: msg.username,
-      } as any, // Cast para compatibilidad con ReceivedChatMessage
-    }));
+    const historicalMessages: ReceivedChatMessage[] =
+      persistedMessages.map((msg) => ({
+        timestamp: new Date(msg.createdAt).getTime(),
+        message: msg.content,
+        from: {
+          name: msg.username,
+          identity: msg.username,
+        } as any,
+      }));
 
-    // Combinar y ordenar
     const combined = [...historicalMessages, ...liveMessages];
+
     return combined.sort((a, b) => b.timestamp - a.timestamp);
   }, [persistedMessages, liveMessages]);
 
   const onSubmit = () => {
-    if (!send) return;
+    if (!send || !value.trim()) return;
     send(value);
     setValue("");
   };
@@ -144,7 +158,9 @@ function Chat({
 
   return (
     <div className="flex flex-col bg-[#333131] h-full">
-      <ChatHeader />
+      {/* ✅ Pasamos isHost al header */}
+      <ChatHeader isHost={isHost} />
+
       {variant === ChatVariant.CHAT && (
         <>
           <ChatList
@@ -152,6 +168,7 @@ function Chat({
             isHidden={isHidden}
             pinnedMessage={pinnedMessage}
           />
+
           {!matches && (
             <ChatForm
               onSubmit={onSubmit}
@@ -163,46 +180,10 @@ function Chat({
               isFollowing={isFollowing}
             />
           )}
+
           {matches && (
             <motion.div
               initial={{ y: 80, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 80, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="chat-input-mobile"
-            >
-              <ChatForm
-                onSubmit={onSubmit}
-                value={value}
-                onChange={onChange}
-                isHidden={isHidden}
-                isFollowersOnly={isChatFollowersOnly}
-                isDelayed={isChatDelayed}
-                isFollowing={isFollowing}
-              />
-            </motion.div>
-          )}
-        </>
-      )}
-      {variant === ChatVariant.COMMUNITY && (
-        <ChatCommunity
-          viewerName={viewerName}
-          hostName={hostName}
-          isHidden={isHidden}
-        />
-      )}
-    </div>
-  );
-}
-
-export default Chat;
-
-export const ChatSkeleton = () => {
-  return (
-    <div className="flex flex-col border-l border-b pt-0 h-[calc(100vh-80px)] border-2">
-      <ChatHeaderSkeleton />
-      <ChatListSkeleton />
-      <ChatFormSkeleton />
-    </div>
-  );
-};
