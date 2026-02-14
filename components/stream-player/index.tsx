@@ -186,17 +186,18 @@ function StreamPlayer({ user, stream, isFollowing }: Props) {
             <button onClick={() => setChatOpen(false)}>✖</button>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <Chat
-              viewerName={name}
-              hostName={user.username}
-              hostIdentity={user.id}
-              isFollowing={isFollowing}
-              isChatEnabled={stream.isChatEnabled}
-              isChatDelayed={stream.isChatDelayed}
-              isChatFollowersOnly={stream.isChatFollowersOnly}
-              pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
-              streamId={stream.id} // ✅ Agregar aquí también
-            />
+         <Chat
+          viewerName={name}
+          viewerIdentity={identity} // ✅ Agregar
+          hostName={user.username}
+          hostIdentity={user.id}
+          isFollowing={isFollowing}
+          isChatEnabled={stream.isChatEnabled}
+          isChatDelayed={stream.isChatDelayed}
+          isChatFollowersOnly={stream.isChatFollowersOnly}
+          pinnedMessage={stream.pinnedMessage || stream.streamTopic || ""}
+          streamId={stream.id}
+        />
           </div>
         </motion.div>
       </motion.div>
