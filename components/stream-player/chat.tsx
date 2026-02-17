@@ -1,5 +1,4 @@
 "use client";
-
 import { ChatVariant, useChatSidebar } from "@/store/use-chat-sidebar";
 import {
   useChat,
@@ -8,7 +7,7 @@ import {
 } from "@livekit/components-react";
 import type { ReceivedChatMessage } from "@livekit/components-react";
 import { ConnectionState } from "livekit-client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { motion } from "framer-motion";
 import ChatHeader, { ChatHeaderSkeleton } from "./chat-header";
@@ -52,34 +51,24 @@ function Chat({
   const { variant, onExpand } = useChatSidebar((state) => state);
   const connectionState = useConnectionState();
   const participant = useRemoteParticipant(hostIdentity);
-
-  // ✅ Boolean real
-  const isOnline =
-    !!participant && connectionState === ConnectionState.Connected;
-
+  const isOnline = participant && connectionState === ConnectionState.Connected;
   const isHidden = !isChatEnabled || !isOnline;
-
   const [value, setValue] = useState("");
   const { chatMessages: liveMessages, send } = useChat();
 
-  const [persistedMessages, setPersistedMessages] = useState<
-    PersistedMessage[]
-  >([]);
+  const [persistedMessages, setPersistedMessages] = useState<PersistedMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  // ✅ Detectar si el viewer es el host
-  const isHost = `host-${hostIdentity}` === viewerIdentity;
+  // ✅ Ref para rastrear timestamps ya guardados y evitar duplicados
+  const savedTimestamps = useRef<Set<number>>(new Set());
 
-  // Cargar historial
+  // Cargar historial al montar
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
-        const response = await fetch(
-          `/api/chat/messages?streamId=${streamId}&limit=100`
-        );
-
+        const response = await fetch(`/api/chat/messages?streamId=${streamId}&limit=100`);
         if (response.ok) {
-          const messages = await response.json();
+          const messages: PersistedMessage[] = await response.json();
           setPersistedMessages(messages);
         }
       } catch (error) {
@@ -94,20 +83,22 @@ function Chat({
     }
   }, [streamId]);
 
-  // Guardar nuevos mensajes
+  // ✅ Solo guardar mensajes NUEVOS (no los que ya están en historial)
   useEffect(() => {
-    if (liveMessages.length === 0) return;
+    if (liveMessages.length === 0 || isLoadingHistory) return;
 
     const lastMessage = liveMessages[liveMessages.length - 1];
-    if (!lastMessage) return;
+
+    // Si ya guardamos este timestamp, no lo guardamos de nuevo
+    if (savedTimestamps.current.has(lastMessage.timestamp)) return;
+
+    savedTimestamps.current.add(lastMessage.timestamp);
 
     const saveMessage = async () => {
       try {
         await fetch("/api/chat/messages", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             streamId,
             content: lastMessage.message,
@@ -121,7 +112,7 @@ function Chat({
     };
 
     saveMessage();
-  }, [liveMessages, streamId]);
+  }, [liveMessages, streamId, isLoadingHistory]);
 
   useEffect(() => {
     if (matches) {
@@ -129,10 +120,24 @@ function Chat({
     }
   }, [matches, onExpand]);
 
-  // Combinar mensajes históricos + live
+  const isHost = `host-${hostIdentity}` === viewerIdentity;
+
+  // ✅ Combinar mensajes sin duplicados usando timestamp como clave
   const allMessages = useMemo(() => {
-    const historicalMessages: ReceivedChatMessage[] =
-      persistedMessages.map((msg) => ({
+    // Timestamps de mensajes en vivo
+    const liveTimestamps = new Set(liveMessages.map((m) => m.timestamp));
+
+    // Convertir historial al formato ReceivedChatMessage
+    // Solo incluir mensajes históricos que NO están ya en liveMessages
+    const historicalMessages: ReceivedChatMessage[] = persistedMessages
+      .filter((msg) => {
+        const ts = new Date(msg.createdAt).getTime();
+        // Excluir si ya existe un mensaje en vivo con timestamp muy cercano (±1000ms)
+        return ![...liveTimestamps].some(
+          (liveTs) => Math.abs(liveTs - ts) < 1000
+        );
+      })
+      .map((msg) => ({
         timestamp: new Date(msg.createdAt).getTime(),
         message: msg.content,
         from: {
@@ -142,12 +147,11 @@ function Chat({
       }));
 
     const combined = [...historicalMessages, ...liveMessages];
-
     return combined.sort((a, b) => b.timestamp - a.timestamp);
   }, [persistedMessages, liveMessages]);
 
   const onSubmit = () => {
-    if (!send || !value.trim()) return;
+    if (!send) return;
     send(value);
     setValue("");
   };
@@ -163,7 +167,6 @@ function Chat({
   return (
     <div className="flex flex-col bg-[#333131] h-full">
       <ChatHeader isHost={isHost} />
-
       {variant === ChatVariant.CHAT && (
         <>
           <ChatList
@@ -171,7 +174,6 @@ function Chat({
             isHidden={isHidden}
             pinnedMessage={pinnedMessage}
           />
-
           {!matches && (
             <ChatForm
               onSubmit={onSubmit}
@@ -183,7 +185,6 @@ function Chat({
               isFollowing={isFollowing}
             />
           )}
-
           {matches && (
             <motion.div
               initial={{ y: 80, opacity: 0 }}
@@ -205,7 +206,6 @@ function Chat({
           )}
         </>
       )}
-
       {variant === ChatVariant.COMMUNITY && (
         <ChatCommunity
           viewerName={viewerName}
