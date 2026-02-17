@@ -124,31 +124,30 @@ function Chat({
 
   // ✅ Combinar mensajes sin duplicados usando timestamp como clave
   const allMessages = useMemo(() => {
-    // Timestamps de mensajes en vivo
-    const liveTimestamps = new Set(liveMessages.map((m) => m.timestamp));
+  // Timestamps de mensajes en vivo como Array (compatible con TypeScript)
+  const liveTimestamps = liveMessages.map((m) => m.timestamp);
 
-    // Convertir historial al formato ReceivedChatMessage
-    // Solo incluir mensajes históricos que NO están ya en liveMessages
-    const historicalMessages: ReceivedChatMessage[] = persistedMessages
-      .filter((msg) => {
-        const ts = new Date(msg.createdAt).getTime();
-        // Excluir si ya existe un mensaje en vivo con timestamp muy cercano (±1000ms)
-        return ![...liveTimestamps].some(
-          (liveTs) => Math.abs(liveTs - ts) < 1000
-        );
-      })
-      .map((msg) => ({
-        timestamp: new Date(msg.createdAt).getTime(),
-        message: msg.content,
-        from: {
-          name: msg.username,
-          identity: msg.username,
-        } as any,
-      }));
+  // Convertir historial al formato ReceivedChatMessage
+  const historicalMessages: ReceivedChatMessage[] = persistedMessages
+    .filter((msg) => {
+      const ts = new Date(msg.createdAt).getTime();
+      // Excluir si ya existe un mensaje en vivo con timestamp muy cercano (±1000ms)
+      return !liveTimestamps.some(
+        (liveTs) => Math.abs(liveTs - ts) < 1000
+      );
+    })
+    .map((msg) => ({
+      timestamp: new Date(msg.createdAt).getTime(),
+      message: msg.content,
+      from: {
+        name: msg.username,
+        identity: msg.username,
+      } as any,
+    }));
 
-    const combined = [...historicalMessages, ...liveMessages];
-    return combined.sort((a, b) => b.timestamp - a.timestamp);
-  }, [persistedMessages, liveMessages]);
+  const combined = [...historicalMessages, ...liveMessages];
+  return combined.sort((a, b) => b.timestamp - a.timestamp);
+}, [persistedMessages, liveMessages]);
 
   const onSubmit = () => {
     if (!send) return;
